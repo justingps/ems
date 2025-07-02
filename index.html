@@ -5,149 +5,163 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Employee Management System</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Montserrat', sans-serif;
+      background-color: #e0e5ec;
+      color: #4a5568;
+    }
+    .neumorphic {
+      background: #e0e5ec;
+      border-radius: 12px;
+      box-shadow: 8px 8px 16px #b7bec9, -8px -8px 16px #ffffff;
+      padding: 2rem;
+    }
+    .neumorphic-input {
+      background: #e0e5ec;
+      border: none;
+      border-radius: 8px;
+      box-shadow: inset 4px 4px 8px #b7bec9, inset -4px -4px 8px #ffffff;
+      padding: 0.75rem;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .neumorphic-input:focus {
+      outline: none;
+      box-shadow: inset 2px 2px 4px #b7bec9, inset -2px -2px 4px #ffffff;
+    }
+    .neumorphic-button {
+      background: #e0e5ec;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 4px 4px 8px #b7bec9, -4px -4px 8px #ffffff;
+      padding: 0.75rem 1.5rem;
+      color: #4a5568;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .neumorphic-button:hover {
+      box-shadow: 2px 2px 4px #b7bec9, -2px -2px 4px #ffffff;
+    }
+    .neumorphic-button:active {
+      box-shadow: inset 2px 2px 4px #b7bec9, inset -2px -2px 4px #ffffff;
     }
     .header {
-      background-color: #1a202c;
-      color: white;
+      background: #e0e5ec;
+      box-shadow: 4px 4px 8px #b7bec9, -4px -4px 8px #ffffff;
       padding: 1.5rem;
       text-align: center;
-    }
-    .form-container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      background: white;
-      padding: 2rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-    }
-    .btn-primary {
-      background-color: #007bff;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-    .btn-primary:hover {
-      background-color: #0056b3;
+      border-radius: 0 0 12px 12px;
     }
     .footer {
-      background-color: #f8f9fa;
+      background: #e0e5ec;
+      box-shadow: inset 4px 4px 8px #b7bec9, inset -4px -4px 8px #ffffff;
       padding: 1rem;
       text-align: center;
-      color: #6c757d;
+      color: #6b7280;
       margin-top: 2rem;
     }
-    input, textarea {
-      border: 1px solid #ced4da;
-      border-radius: 4px;
-      padding: 0.5rem;
-      width: 100%;
-    }
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    .form-container {
+      max-width: 1000px;
+      margin: 2rem auto;
     }
   </style>
 </head>
-<body class="bg-gray-100">
+<body>
   <header class="header">
-    <h1 class="text-3xl font-bold">Employee Management System</h1>
+    <h1 class="text-2xl font-semibold">Employee Management System</h1>
   </header>
 
-  <div class="form-container">
-    <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Employee Information Form</h2>
+  <div class="form-container neumorphic">
+    <h2 class="text-xl font-medium mb-6 text-center">Employee Information Form</h2>
     <div id="form-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
-        <input type="text" id="employmentType" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Employment Type</label>
+        <input type="text" id="employmentType" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Employment Category</label>
-        <input type="text" id="employmentCategory" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Employment Category</label>
+        <input type="text" id="employmentCategory" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Employment ID</label>
-        <input type="text" id="employmentId" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Employment ID</label>
+        <input type="text" id="employmentId" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Employee Name</label>
-        <input type="text" id="employeeName" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Employee Name</label>
+        <input type="text" id="employeeName" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
-        <input type="text" id="designation" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Designation</label>
+        <input type="text" id="designation" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-        <input type="text" id="nationality" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Nationality</label>
+        <input type="text" id="nationality" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-        <input type="text" id="status" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Status</label>
+        <input type="text" id="status" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
-        <input type="text" id="company" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Company</label>
+        <input type="text" id="company" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Name</label>
-        <input type="text" id="supplierName" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Supplier Name</label>
+        <input type="text" id="supplierName" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Mobile No</label>
-        <input type="tel" id="mobileNo" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Mobile No</label>
+        <input type="tel" id="mobileNo" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Res. ID</label>
-        <input type="text" id="resId" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Res. ID</label>
+        <input type="text" id="resId" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Res. ID Expiry</label>
-        <input type="date" id="resIdExpiry" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Res. ID Expiry</label>
+        <input type="date" id="resIdExpiry" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-        <input type="date" id="dob" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Date of Birth</label>
+        <input type="date" id="dob" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Date of First</label>
-        <input type="date" id="dateOfFirst" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Date of First</label>
+        <input type="date" id="dateOfFirst" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Reporting Date</label>
-        <input type="date" id="reportingDate" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Reporting Date</label>
+        <input type="date" id="reportingDate" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Reported From</label>
-        <input type="text" id="reportedFrom" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Reported From</label>
+        <input type="text" id="reportedFrom" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Allocated To</label>
-        <input type="text" id="allocatedTo" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Allocated To</label>
+        <input type="text" id="allocatedTo" class="neumorphic-input">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Reporting To</label>
-        <input type="text" id="reportingTo" class="mt-1 block w-full">
+        <label class="block text-sm font-medium mb-1">Reporting To</label>
+        <input type="text" id="reportingTo" class="neumorphic-input">
       </div>
       <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-        <textarea id="remarks" class="mt-1 block w-full" rows="4"></textarea>
+        <label class="block text-sm font-medium mb-1">Remarks</label>
+        <textarea id="remarks" class="neumorphic-input" rows="4"></textarea>
       </div>
     </div>
     <div class="mt-8 text-center">
-      <button id="submitBtn" class="btn-primary">Submit</button>
+      <button id="submitBtn" class="neumorphic-button">Submit</button>
     </div>
     <p id="responseMessage" class="mt-4 text-center text-green-600 hidden">Form submitted successfully!</p>
     <p id="errorMessage" class="mt-4 text-center text-red-600 hidden"></p>
   </div>
 
   <footer class="footer">
-    <p>&copy; 2025 Employee Management System. All rights reserved.</p>
+    <p>© 2025 Employee Management System. All rights reserved.</p>
   </footer>
 
   <script>
@@ -179,9 +193,8 @@
           method: 'POST',
           body: JSON.stringify(data),
           headers: { 'Content-Type': 'application/json' },
-          mode: 'no-cors' // Bypass CORS
+          mode: 'no-cors'
         });
-        // Since mode is 'no-cors', we can't read the response, so assume success
         document.getElementById('responseMessage').classList.remove('hidden');
         document.getElementById('errorMessage').classList.add('hidden');
         document.getElementById('form-container').querySelectorAll('input, textarea').forEach(input => input.value = '');
