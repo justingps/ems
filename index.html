@@ -3,81 +3,266 @@
 <head>
   <base target="_top">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-    h1 { color: #4285F4; text-align: center; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-    button { background-color: #4285F4; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background-color: #3367D6; }
+    body {
+      font-family: 'Arial', sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .form-container {
+      background-color: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .form-field {
+      flex: 1 1 calc(50% - 15px);
+      min-width: 250px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #34495e;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52,152,219,0.3);
+    }
+    .required:after {
+      content: " *";
+      color: #e74c3c;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: 25px auto 0;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #message {
+      text-align: center;
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .date-field {
+      position: relative;
+    }
+    .date-field:after {
+      content: "📅";
+      position: absolute;
+      right: 10px;
+      top: 35px;
+      pointer-events: none;
+    }
+    @media (max-width: 600px) {
+      .form-field {
+        flex: 1 1 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Employee Data Entry</h1>
-  <form id="employeeForm">
-    <div class="form-group">
-      <label for="employmentType">Employment Type:</label>
-      <select id="employmentType" required>
-        <option value="">Select</option>
-        <option value="Full-time">Full-time</option>
-        <option value="Part-time">Part-time</option>
-        <option value="Contract">Contract</option>
-      </select>
-    </div>
+  <div class="form-container">
+    <h1>Employee Data Entry Form</h1>
+    <form id="employeeForm">
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="employmentType" class="required">Employment Type</label>
+          <select id="employmentType" required>
+            <option value="">-- Select --</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Temporary">Temporary</option>
+          </select>
+        </div>
+        
+        <div class="form-field">
+          <label for="employmentCategory" class="required">Employment Category</label>
+          <input type="text" id="employmentCategory" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="employmentId" class="required">Employment ID</label>
+          <input type="text" id="employmentId" required>
+        </div>
+        
+        <div class="form-field">
+          <label for="employeeName" class="required">Employee Name</label>
+          <input type="text" id="employeeName" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="designation">Designation</label>
+          <input type="text" id="designation">
+        </div>
+        
+        <div class="form-field">
+          <label for="nationality">Nationality</label>
+          <input type="text" id="nationality">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="On Leave">On Leave</option>
+            <option value="Terminated">Terminated</option>
+          </select>
+        </div>
+        
+        <div class="form-field">
+          <label for="company">Company</label>
+          <input type="text" id="company">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="supplierName">Supplier Name</label>
+          <input type="text" id="supplierName">
+        </div>
+        
+        <div class="form-field">
+          <label for="mobileNo">Mobile Number</label>
+          <input type="tel" id="mobileNo" pattern="[0-9]{10,15}">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="resId">Residence ID</label>
+          <input type="text" id="resId">
+        </div>
+        
+        <div class="form-field date-field">
+          <label for="resIdExpiry">Residence ID Expiry</label>
+          <input type="date" id="resIdExpiry">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field date-field">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob">
+        </div>
+        
+        <div class="form-field date-field">
+          <label for="dateOfFirst">Date of First Employment</label>
+          <input type="date" id="dateOfFirst">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field date-field">
+          <label for="reportingDate">Reporting Date</label>
+          <input type="date" id="reportingDate">
+        </div>
+        
+        <div class="form-field">
+          <label for="reportedFrom">Reported From</label>
+          <input type="text" id="reportedFrom">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field">
+          <label for="allocatedTo">Allocated To</label>
+          <input type="text" id="allocatedTo">
+        </div>
+        
+        <div class="form-field">
+          <label for="reportingTo">Reporting To</label>
+          <input type="text" id="reportingTo">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="form-field" style="flex: 1 1 100%;">
+          <label for="remarks">Remarks</label>
+          <textarea id="remarks" rows="3"></textarea>
+        </div>
+      </div>
+      
+      <button type="submit">Submit Employee Data</button>
+    </form>
     
-    <div class="form-group">
-      <label for="employmentCategory">Employment Category:</label>
-      <input type="text" id="employmentCategory" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="employmentId">Employment ID:</label>
-      <input type="text" id="employmentId" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="employeeName">Employee Name:</label>
-      <input type="text" id="employeeName" required>
-    </div>
-    
-    <!-- Add all other fields similarly -->
-    <!-- For brevity, I've included a few fields - you should add all fields from your list -->
-    
-    <div class="form-group">
-      <label for="designation">Designation:</label>
-      <input type="text" id="designation">
-    </div>
-    
-    <div class="form-group">
-      <label for="nationality">Nationality:</label>
-      <input type="text" id="nationality">
-    </div>
-    
-    <div class="form-group">
-      <label for="status">Status:</label>
-      <select id="status">
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-        <option value="On Leave">On Leave</option>
-      </select>
-    </div>
-    
-    <!-- Continue with all other fields -->
-    
-    <div class="form-group">
-      <label for="remarks">Remarks:</label>
-      <textarea id="remarks" rows="3" style="width: 100%;"></textarea>
-    </div>
-    
-    <button type="submit">Submit</button>
-  </form>
-  
-  <div id="message"></div>
+    <div id="message"></div>
+  </div>
   
   <script>
     document.getElementById('employeeForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
+      // Validate required fields
+      const requiredFields = document.querySelectorAll('[required]');
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.style.borderColor = '#e74c3c';
+          isValid = false;
+        } else {
+          field.style.borderColor = '#ddd';
+        }
+      });
+      
+      if (!isValid) {
+        showMessage('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      // Prepare data object
       const data = {
         employmentType: document.getElementById('employmentType').value,
         employmentCategory: document.getElementById('employmentCategory').value,
@@ -100,15 +285,38 @@
         remarks: document.getElementById('remarks').value
       };
       
+      // Submit to Google Sheets
       google.script.run
         .withSuccessHandler(function(msg) {
-          document.getElementById('message').innerHTML = msg;
+          showMessage(msg, 'success');
           document.getElementById('employeeForm').reset();
         })
         .withFailureHandler(function(error) {
-          document.getElementById('message').innerHTML = "Error: " + error.message;
+          showMessage("Error: " + error.message, 'error');
         })
         .appendData(data);
+    });
+    
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = type;
+      messageDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Format date fields for better display
+    const dateFields = document.querySelectorAll('input[type="date"]');
+    dateFields.forEach(field => {
+      field.addEventListener('focus', function() {
+        this.type = 'date';
+      });
+      field.addEventListener('blur', function() {
+        if (!this.value) this.type = 'text';
+      });
     });
   </script>
 </body>
