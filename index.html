@@ -119,11 +119,12 @@
       };
 
       try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbw_vBT3c9Q1JClr6jaYAwpvDwEET1rKElFOqvG8ghP8GckOMUOqxGPZIyuQXYizwDNUxg/exec', {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: { 'Content-Type': 'application/json' }
-        });
+          const response = await fetch('https://script.google.com/macros/s/AKfycbw_vBT3c9Q1JClr6jaYAwpvDwEET1rKElFOqvG8ghP8GckOMUOqxGPZIyuQXYizwDNUxg/exec', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' },
+            mode: 'no-cors' // Add this line
+          });
         const result = await response.json();
         
         if (result.status === 'success') {
