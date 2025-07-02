@@ -111,7 +111,7 @@
       <div class="form-group">
         <div class="form-field">
           <label for="employmentType" class="required">Employment Type</label>
-          <select id="employmentType" required>
+          <select id="employmentType" name="employmentType" required>
             <option value="">-- Select --</option>
             <option value="Full-time">Full-time</option>
             <option value="Part-time">Part-time</option>
@@ -122,38 +122,38 @@
         
         <div class="form-field">
           <label for="employmentCategory" class="required">Employment Category</label>
-          <input type="text" id="employmentCategory" required>
+          <input type="text" id="employmentCategory" name="employmentCategory" required>
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field">
           <label for="employmentId" class="required">Employment ID</label>
-          <input type="text" id="employmentId" required>
+          <input type="text" id="employmentId" name="employmentId" required>
         </div>
         
         <div class="form-field">
           <label for="employeeName" class="required">Employee Name</label>
-          <input type="text" id="employeeName" required>
+          <input type="text" id="employeeName" name="employeeName" required>
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field">
           <label for="designation">Designation</label>
-          <input type="text" id="designation">
+          <input type="text" id="designation" name="designation">
         </div>
         
         <div class="form-field">
           <label for="nationality">Nationality</label>
-          <input type="text" id="nationality">
+          <input type="text" id="nationality" name="nationality">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field">
           <label for="status">Status</label>
-          <select id="status">
+          <select id="status" name="status">
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
             <option value="On Leave">On Leave</option>
@@ -163,74 +163,74 @@
         
         <div class="form-field">
           <label for="company">Company</label>
-          <input type="text" id="company">
+          <input type="text" id="company" name="company">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field">
           <label for="supplierName">Supplier Name</label>
-          <input type="text" id="supplierName">
+          <input type="text" id="supplierName" name="supplierName">
         </div>
         
         <div class="form-field">
           <label for="mobileNo">Mobile Number</label>
-          <input type="tel" id="mobileNo" pattern="[0-9]{10,15}">
+          <input type="tel" id="mobileNo" name="mobileNo" pattern="[0-9]{10,15}">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field">
           <label for="resId">Residence ID</label>
-          <input type="text" id="resId">
+          <input type="text" id="resId" name="resId">
         </div>
         
         <div class="form-field date-field">
           <label for="resIdExpiry">Residence ID Expiry</label>
-          <input type="date" id="resIdExpiry">
+          <input type="date" id="resIdExpiry" name="resIdExpiry">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field date-field">
           <label for="dob">Date of Birth</label>
-          <input type="date" id="dob">
+          <input type="date" id="dob" name="dob">
         </div>
         
         <div class="form-field date-field">
           <label for="dateOfFirst">Date of First Employment</label>
-          <input type="date" id="dateOfFirst">
+          <input type="date" id="dateOfFirst" name="dateOfFirst">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field date-field">
           <label for="reportingDate">Reporting Date</label>
-          <input type="date" id="reportingDate">
+          <input type="date" id="reportingDate" name="reportingDate">
         </div>
         
         <div class="form-field">
           <label for="reportedFrom">Reported From</label>
-          <input type="text" id="reportedFrom">
+          <input type="text" id="reportedFrom" name="reportedFrom">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field">
           <label for="allocatedTo">Allocated To</label>
-          <input type="text" id="allocatedTo">
+          <input type="text" id="allocatedTo" name="allocatedTo">
         </div>
         
         <div class="form-field">
           <label for="reportingTo">Reporting To</label>
-          <input type="text" id="reportingTo">
+          <input type="text" id="reportingTo" name="reportingTo">
         </div>
       </div>
       
       <div class="form-group">
         <div class="form-field" style="flex: 1 1 100%;">
           <label for="remarks">Remarks</label>
-          <textarea id="remarks" rows="3"></textarea>
+          <textarea id="remarks" name="remarks" rows="3"></textarea>
         </div>
       </div>
       
@@ -243,6 +243,11 @@
   <script>
     document.getElementById('employeeForm').addEventListener('submit', function(e) {
       e.preventDefault();
+      
+      // Show loading state
+      const submitBtn = document.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
       
       // Validate required fields
       const requiredFields = document.querySelectorAll('[required]');
@@ -259,42 +264,33 @@
       
       if (!isValid) {
         showMessage('Please fill in all required fields', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Employee Data';
         return;
       }
       
       // Prepare data object
-      const data = {
-        employmentType: document.getElementById('employmentType').value,
-        employmentCategory: document.getElementById('employmentCategory').value,
-        employmentId: document.getElementById('employmentId').value,
-        employeeName: document.getElementById('employeeName').value,
-        designation: document.getElementById('designation').value,
-        nationality: document.getElementById('nationality').value,
-        status: document.getElementById('status').value,
-        company: document.getElementById('company').value,
-        supplierName: document.getElementById('supplierName').value,
-        mobileNo: document.getElementById('mobileNo').value,
-        resId: document.getElementById('resId').value,
-        resIdExpiry: document.getElementById('resIdExpiry').value,
-        dob: document.getElementById('dob').value,
-        dateOfFirst: document.getElementById('dateOfFirst').value,
-        reportingDate: document.getElementById('reportingDate').value,
-        reportedFrom: document.getElementById('reportedFrom').value,
-        allocatedTo: document.getElementById('allocatedTo').value,
-        reportingTo: document.getElementById('reportingTo').value,
-        remarks: document.getElementById('remarks').value
-      };
+      const formData = new FormData(this);
+      const data = {};
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
       
       // Submit to Google Sheets
       google.script.run
-        .withSuccessHandler(function(msg) {
-          showMessage(msg, 'success');
+        .withSuccessHandler(function(response) {
+          showMessage(response.message, 'success');
           document.getElementById('employeeForm').reset();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Employee Data';
         })
         .withFailureHandler(function(error) {
           showMessage("Error: " + error.message, 'error');
+          console.error(error);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Employee Data';
         })
-        .appendData(data);
+        .processForm(data);
     });
     
     function showMessage(text, type) {
