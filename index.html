@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -662,7 +663,9 @@
       
       try {
         // Replace with your published Google Sheet CSV URL
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv';
+        // Example format: https://docs.google.com/spreadsheets/d/e/[YOUR_SHEET_ID]/pub?output=csv
+        // Make sure your Google Sheet is published to the web (File > Share > Publish to web)
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQzjTfS6kvP94ofoE8Ck3R_I-uGlJ9aa4dpJ-mpChe4LZKYKM4j3twkBQNtsP0QpAmzeZDI2Utfg5RC/pub?gid=0&single=true&output=csv';
         
         const response = await fetch(csvUrl);
         if (!response.ok) {
