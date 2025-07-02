@@ -319,6 +319,16 @@
       background-color: var(--warning-color);
     }
 
+    .hidden {
+      display: none;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 1rem;
+      color: var(--text-light);
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -504,12 +514,6 @@
   </div>
 
   <script>
-    // Google Sheets API configuration
-    const SHEET_ID = '1YOUR_SHEET_ID'; // Replace with your Google Sheet ID
-    const API_KEY = 'YOUR_API_KEY'; // Replace with your Google API key
-    const SHEET_NAME = 'Employees'; // Replace with your sheet name
-    const SHEET_RANGE = 'A:G'; // Adjust based on your columns
-    
     // Set current date
     const today = new Date();
     document.getElementById('currentDate').textContent = formatDateForDisplay(today);
@@ -629,20 +633,47 @@
       }
     });
     
-    // Employee list functionality with Google Sheets API
+    // CSV Helper Functions
+    function parseCSV(csvText) {
+      const lines = csvText.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      const result = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        
+        const obj = {};
+        const currentline = lines[i].split(',');
+        
+        for (let j = 0; j < headers.length; j++) {
+          obj[headers[j]] = currentline[j] ? currentline[j].trim() : '';
+        }
+        
+        result.push(obj);
+      }
+      
+      return result;
+    }
+    
+    // Employee list functionality with CSV
     async function loadEmployeeList() {
       document.getElementById('employeeListLoading').style.display = 'flex';
       document.getElementById('employeeListContent').style.display = 'none';
       
       try {
-        // Fetch data from Google Sheets
-        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!${SHEET_RANGE}?key=${API_KEY}`);
-        const data = await response.json();
+        // Replace with your published Google Sheet CSV URL
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv';
         
-        if (data.values && data.values.length > 1) {
-          // Skip header row
-          const rows = data.values.slice(1);
-          renderEmployeeTable(rows);
+        const response = await fetch(csvUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        const employees = parseCSV(csvText);
+        
+        if (employees.length > 0) {
+          renderEmployeeTable(employees);
         } else {
           renderEmployeeTable([]);
           document.getElementById('employeeTableBody').innerHTML = 
@@ -674,15 +705,15 @@
         row.style.borderBottom = '1px solid var(--border-color)';
         row.style.cursor = 'pointer';
         row.innerHTML = `
-          <td style="padding: 0.75rem;">${employee[0] || '-'}</td>
-          <td style="padding: 0.75rem;">${employee[1] || '-'}</td>
-          <td style="padding: 0.75rem;">${employee[2] || '-'}</td>
-          <td style="padding: 0.75rem;">${employee[3] || '-'}</td>
+          <td style="padding: 0.75rem;">${employee['Employment ID'] || employee['ID'] || '-'}</td>
+          <td style="padding: 0.75rem;">${employee['Employee Name'] || employee['Name'] || '-'}</td>
+          <td style="padding: 0.75rem;">${employee['Designation'] || '-'}</td>
+          <td style="padding: 0.75rem;">${employee['Company'] || '-'}</td>
           <td style="padding: 0.75rem;">
-            <span class="status-indicator ${employee[4] === 'Active' ? 'status-active' : 'status-inactive'}"></span>
-            ${employee[4] || '-'}
+            <span class="status-indicator ${(employee['Status'] || '').toLowerCase() === 'active' ? 'status-active' : 'status-inactive'}"></span>
+            ${employee['Status'] || '-'}
           </td>
-          <td style="padding: 0.75rem;">${employee[5] || '-'}</td>
+          <td style="padding: 0.75rem;">${employee['Mobile No'] || employee['Mobile'] || '-'}</td>
           <td style="padding: 0.75rem;">
             <button class="form-button" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
               <i class="fas fa-eye"></i> View
@@ -691,12 +722,44 @@
         `;
         
         row.addEventListener('click', () => {
-          // You would implement view/edit functionality here
-          alert(`View details for ${employee[1] || 'employee'}`);
+          showEmployeeDetails(employee);
         });
         
         tableBody.appendChild(row);
       });
+    }
+    
+    function showEmployeeDetails(employee) {
+      // Create a modal or use a more sophisticated UI framework
+      let detailsHtml = '<div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: 20px auto;">';
+      detailsHtml += '<h2 style="margin-top: 0;">Employee Details</h2>';
+      detailsHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">';
+      
+      // Add all employee details
+      for (const key in employee) {
+        if (employee.hasOwnProperty(key)) {
+          detailsHtml += `<div><strong>${key}:</strong></div><div>${employee[key] || '-'}</div>`;
+        }
+      }
+      
+      detailsHtml += '</div>';
+      detailsHtml += '<button onclick="this.parentNode.remove()" style="margin-top: 20px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>';
+      detailsHtml += '</div>';
+      
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.right = '0';
+      modal.style.bottom = '0';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.zIndex = '1000';
+      modal.innerHTML = detailsHtml;
+      
+      document.body.appendChild(modal);
     }
     
     // Refresh button handler
@@ -714,6 +777,11 @@
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(searchTerm) ? '' : 'none';
       });
+    });
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', () => {
+      // You might want to load initial data here if needed
     });
   </script>
 </body>
