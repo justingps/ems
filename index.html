@@ -355,6 +355,77 @@
       width: 90%;
     }
 
+    /* New styles for employee summary */
+    .employee-summary {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background-color: var(--light-color);
+      border-radius: 8px;
+      box-shadow: 4px 4px 8px var(--shadow-dark),
+                  -4px -4px 8px var(--shadow-light);
+    }
+
+    .summary-card {
+      flex: 1;
+      min-width: 200px;
+      padding: 1rem;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: inset 2px 2px 4px var(--shadow-dark),
+                  inset -2px -2px 4px var(--shadow-light);
+    }
+
+    .summary-title {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .summary-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .summary-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    .summary-item-label {
+      color: var(--text-light);
+    }
+
+    .summary-item-value {
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -373,6 +444,28 @@
 
       .form-grid {
         grid-template-columns: 1fr;
+      }
+
+      .employee-summary {
+        flex-direction: column;
+      }
+
+      .summary-card {
+        min-width: 100%;
+      }
+
+      .top-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .action-buttons {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .action-buttons button {
+        flex: 1;
       }
     }
   </style>
@@ -503,10 +596,47 @@
         </div>
         
         <div id="employeeListContent" style="display: none;">
-          <div class="filter-container" style="margin-bottom: 1.5rem;">
-            <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
-              <label class="form-label" style="white-space: nowrap;"><i class="fas fa-search"></i> Search:</label>
-              <input type="text" id="employeeSearch" class="form-input" placeholder="Search employees...">
+          <!-- Employee Summary Section -->
+          <div id="employeeSummary" class="employee-summary hidden">
+            <div class="summary-card">
+              <div class="summary-title">Total Employees</div>
+              <div class="summary-value" id="totalEmployees">0</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Designation Summary</div>
+              <div class="summary-details" id="designationSummary">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Employment Type</div>
+              <div class="summary-details" id="employmentTypeSummary">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Nationality</div>
+              <div class="summary-details" id="nationalitySummary">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="top-actions">
+            <div class="filter-container" style="flex-grow: 1;">
+              <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
+                <label class="form-label" style="white-space: nowrap;"><i class="fas fa-search"></i> Search:</label>
+                <input type="text" id="employeeSearch" class="form-input" placeholder="Search employees...">
+              </div>
+            </div>
+            
+            <div class="action-buttons">
+              <button id="refreshBtn" class="form-button">
+                <i class="fas fa-sync-alt"></i> Refresh List
+              </button>
+              <button id="downloadBtn" class="form-button">
+                <i class="fas fa-download"></i> Download Excel
+              </button>
             </div>
           </div>
           
@@ -528,15 +658,6 @@
                 <!-- Will be populated by JavaScript -->
               </tbody>
             </table>
-          </div>
-          
-          <div style="margin-top: 1.5rem; text-align: center; display: flex; gap: 1rem; justify-content: center;">
-            <button id="refreshBtn" class="form-button">
-              <i class="fas fa-sync-alt"></i> Refresh List
-            </button>
-            <button id="downloadBtn" class="form-button">
-              <i class="fas fa-download"></i> Download Excel
-            </button>
           </div>
         </div>
       </div>
@@ -727,6 +848,98 @@
     
     let employeeData = []; // Store employee data globally for export
     
+    // Function to update employee summary
+    function updateEmployeeSummary(employees) {
+      if (!employees || employees.length === 0) {
+        document.getElementById('employeeSummary').classList.add('hidden');
+        return;
+      }
+      
+      document.getElementById('employeeSummary').classList.remove('hidden');
+      
+      // Update total employees count
+      document.getElementById('totalEmployees').textContent = employees.length;
+      
+      // Calculate designation summary
+      const designationCounts = {};
+      employees.forEach(employee => {
+        const designation = getField(employee, ['Designation', 'Position', 'Job Title']) || 'Unknown';
+        designationCounts[designation] = (designationCounts[designation] || 0) + 1;
+      });
+      
+      const designationSummary = document.getElementById('designationSummary');
+      designationSummary.innerHTML = '';
+      
+      Object.entries(designationCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5) // Show top 5 designations
+        .forEach(([designation, count]) => {
+          const item = document.createElement('div');
+          item.className = 'summary-item';
+          item.innerHTML = `
+            <span class="summary-item-label">${designation}</span>
+            <span class="summary-item-value">${count}</span>
+          `;
+          designationSummary.appendChild(item);
+        });
+      
+      // Calculate employment type summary
+      const employmentTypeCounts = {};
+      employees.forEach(employee => {
+        const type = getField(employee, ['Employment Type', 'Type']) || 'Unknown';
+        employmentTypeCounts[type] = (employmentTypeCounts[type] || 0) + 1;
+      });
+      
+      const employmentTypeSummary = document.getElementById('employmentTypeSummary');
+      employmentTypeSummary.innerHTML = '';
+      
+      Object.entries(employmentTypeCounts)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([type, count]) => {
+          const item = document.createElement('div');
+          item.className = 'summary-item';
+          item.innerHTML = `
+            <span class="summary-item-label">${type}</span>
+            <span class="summary-item-value">${count}</span>
+          `;
+          employmentTypeSummary.appendChild(item);
+        });
+      
+      // Calculate nationality summary
+      const nationalityCounts = {};
+      employees.forEach(employee => {
+        const nationality = getField(employee, ['Nationality', 'Country']) || 'Unknown';
+        nationalityCounts[nationality] = (nationalityCounts[nationality] || 0) + 1;
+      });
+      
+      const nationalitySummary = document.getElementById('nationalitySummary');
+      nationalitySummary.innerHTML = '';
+      
+      Object.entries(nationalityCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5) // Show top 5 nationalities
+        .forEach(([nationality, count]) => {
+          const item = document.createElement('div');
+          item.className = 'summary-item';
+          item.innerHTML = `
+            <span class="summary-item-label">${nationality}</span>
+            <span class="summary-item-value">${count}</span>
+          `;
+          nationalitySummary.appendChild(item);
+        });
+    }
+    
+    function getField(obj, possibleNames) {
+      for (const name of possibleNames) {
+        for (const key in obj) {
+          if (key.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, '')) {
+            return obj[key] || '-';
+          }
+        }
+      }
+      return '-';
+    }
+    
     async function loadEmployeeList() {
       document.getElementById('employeeListLoading').style.display = 'flex';
       document.getElementById('employeeListContent').style.display = 'none';
@@ -745,15 +958,18 @@
         
         if (employeeData.length > 0) {
           renderEmployeeTable(employeeData);
+          updateEmployeeSummary(employeeData);
         } else {
           renderEmployeeTable([]);
           document.getElementById('employeeTableBody').innerHTML = 
             '<tr><td colspan="8" class="no-data">No employee records found</td></tr>';
+          document.getElementById('employeeSummary').classList.add('hidden');
         }
       } catch (error) {
         console.error('Error loading employee data:', error);
         document.getElementById('employeeTableBody').innerHTML = 
           `<tr><td colspan="8" class="no-data">Error loading employee data: ${error.message}</td></tr>`;
+        document.getElementById('employeeSummary').classList.add('hidden');
       } finally {
         document.getElementById('employeeListLoading').style.display = 'none';
         document.getElementById('employeeListContent').style.display = 'block';
@@ -775,17 +991,6 @@
         const row = document.createElement('tr');
         row.style.borderBottom = '1px solid var(--border-color)';
         row.style.cursor = 'pointer';
-        
-        const getField = (obj, possibleNames) => {
-          for (const name of possibleNames) {
-            for (const key in obj) {
-              if (key.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, '')) {
-                return obj[key] || '-';
-              }
-            }
-          }
-          return '-';
-        };
         
         const empId = getField(employee, ['Employment ID', 'ID', 'Employee ID']);
         const empName = getField(employee, ['Employee Name', 'Name', 'Full Name']);
