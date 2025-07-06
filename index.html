@@ -1277,7 +1277,9 @@
       try {
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQzjTfS6kvP94ofoE8Ck3R_I-uGlJ9aa4dpJ-mpChe4LZKYKM4j3twkBQNtsP0QpAmzeZDI2Utfg5RC/pub?gid=0&single=true&output=csv';
         const timestamp = new Date().getTime();
-        const response = await fetch(`${csvUrl}&t=${timestamp}`);
+        const response = await fetch(`${csvUrl}&t=${timestamp}`, {
+          cache: 'no-store' // Ensure fresh data is fetched
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -1471,6 +1473,10 @@
     
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize page
+      // Load employee list only if the employeeList tab is active
+      if (document.getElementById('employeeList').classList.contains('active')) {
+        loadEmployeeList();
+      }
     });
   </script>
 </body>
