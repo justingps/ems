@@ -378,11 +378,25 @@
                   inset -2px -2px 4px var(--shadow-light);
     }
 
+    .designation-summary-card {
+      width: 100%;
+      padding: 1rem;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 2px 2px 4px var(--shadow-dark),
+                  inset -2px -2px 4px var(--shadow-light);
+    }
+
     .summary-title {
       font-size: 0.9rem;
       color: var(--text-light);
       margin-bottom: 0.5rem;
       font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
     }
 
     .summary-value {
@@ -408,6 +422,39 @@
     }
 
     .summary-item-value {
+      font-weight: 500;
+    }
+
+    .designation-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .designation-table td {
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    .designation-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .designation-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .designation-count {
+      min-width: 40px;
+      text-align: right;
       font-weight: 500;
     }
 
@@ -477,6 +524,10 @@
 
       .summary-card {
         min-width: 100%;
+      }
+
+      .designation-table td {
+        padding: 0.3rem 0.5rem;
       }
 
       .top-actions {
@@ -633,12 +684,6 @@
               <div class="summary-value" id="totalEmployees">0</div>
             </div>
             <div class="summary-card">
-              <div class="summary-title">Designation Summary</div>
-              <div class="summary-details" id="designationSummary">
-                <!-- Will be populated by JavaScript -->
-              </div>
-            </div>
-            <div class="summary-card">
               <div class="summary-title">Employment Type</div>
               <div class="summary-details" id="employmentTypeSummary">
                 <!-- Will be populated by JavaScript -->
@@ -650,6 +695,14 @@
                 <!-- Will be populated by JavaScript -->
               </div>
             </div>
+          </div>
+
+          <!-- Designation Summary Card -->
+          <div id="designationSummaryCard" class="designation-summary-card hidden">
+            <div class="summary-title" id="designationSummaryToggle">
+              Designation Summary <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="designationSummary" style="display: none;"></div>
           </div>
           
           <div class="top-actions">
@@ -962,10 +1015,12 @@
     function updateEmployeeSummary(employees) {
       if (!employees || employees.length === 0) {
         document.getElementById('employeeSummary').classList.add('hidden');
+        document.getElementById('designationSummaryCard').classList.add('hidden');
         return;
       }
       
       document.getElementById('employeeSummary').classList.remove('hidden');
+      document.getElementById('designationSummaryCard').classList.remove('hidden');
       
       // Update total employees count
       document.getElementById('totalEmployees').textContent = employees.length;
@@ -982,23 +1037,47 @@
       const designationSummary = document.getElementById('designationSummary');
       designationSummary.innerHTML = '';
       
-      // Sort designations by count (descending) and show top 5
       const sortedDesignations = Object.entries(designationCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])); // Sort by count (descending), then alphabetically
       
       if (sortedDesignations.length === 0) {
-        designationSummary.innerHTML = '<div class="summary-item">No designations found</div>';
+        designationSummary.innerHTML = '<div class="no-data">No designations found</div>';
       } else {
-        sortedDesignations.forEach(([designation, count]) => {
-          const item = document.createElement('div');
-          item.className = 'summary-item';
-          item.innerHTML = `
-            <span class="summary-item-label">${designation}</span>
-            <span class="summary-item-value">${count}</span>
-          `;
-          designationSummary.appendChild(item);
-        });
+        // Determine number of columns (4 or 5 based on data length)
+        const numColumns = sortedDesignations.length > 20 ? 5 : 4;
+        const itemsPerColumn = Math.ceil(sortedDesignations.length / numColumns);
+        
+        // Create columns
+        const table = document.createElement('table');
+        table.className = 'designation-table';
+        const tbody = document.createElement('tbody');
+        const rows = [];
+        
+        // Create rows with items distributed across columns
+        for (let i = 0; i < itemsPerColumn; i++) {
+          const row = document.createElement('tr');
+          for (let j = 0; j < numColumns; j++) {
+            const index = j * itemsPerColumn + i;
+            if (index < sortedDesignations.length) {
+              const [designation, count] = sortedDesignations[index];
+              row.innerHTML += `
+                <td style="width: ${100 / numColumns}%">
+                  <div class="designation-item">
+                    <span class="designation-name">${designation}</span>
+                    <span class="designation-count">${count}</span>
+                  </div>
+                </td>
+              `;
+            } else {
+              row.innerHTML += '<td></td>'; // Empty cell for alignment
+            }
+          }
+          rows.push(row);
+        }
+        
+        tbody.append(...rows);
+        table.appendChild(tbody);
+        designationSummary.appendChild(table);
       }
       
       // Calculate employment type summary
@@ -1042,7 +1121,6 @@
       const nationalitySummary = document.getElementById('nationalitySummary');
       nationalitySummary.innerHTML = '';
       
-      // Sort nationalities by count (descending) and show top 5
       const sortedNationalities = Object.entries(nationalityCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
@@ -1060,6 +1138,15 @@
           nationalitySummary.appendChild(item);
         });
       }
+
+      // Set up toggle for designation summary
+      const toggle = document.getElementById('designationSummaryToggle');
+      const summary = document.getElementById('designationSummary');
+      toggle.addEventListener('click', () => {
+        const isHidden = summary.style.display === 'none';
+        summary.style.display = isHidden ? 'block' : 'none';
+        toggle.querySelector('i').className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+      });
     }
     
     // Function to show edit employee modal
@@ -1299,12 +1386,14 @@
           document.getElementById('employeeTableBody').innerHTML = 
             '<tr><td colspan="8" class="no-data">No employee records found</td></tr>';
           document.getElementById('employeeSummary').classList.add('hidden');
+          document.getElementById('designationSummaryCard').classList.add('hidden');
         }
       } catch (error) {
         console.error('Error loading employee data:', error);
         document.getElementById('employeeTableBody').innerHTML = 
           `<tr><td colspan="8" class="no-data">Error loading employee data: ${error.message}</td></tr>`;
         document.getElementById('employeeSummary').classList.add('hidden');
+        document.getElementById('designationSummaryCard').classList.add('hidden');
       } finally {
         document.getElementById('employeeListLoading').style.display = 'none';
         document.getElementById('employeeListContent').style.display = 'block';
@@ -1322,7 +1411,14 @@
         return;
       }
       
-      employees.forEach((employee, index) => {
+      // Sort employees by Designation
+      const sortedEmployees = [...employees].sort((a, b) => {
+        const designationA = getField(a, ['Designation', 'Position', 'Job Title']).toLowerCase();
+        const designationB = getField(b, ['Designation', 'Position', 'Job Title']).toLowerCase();
+        return designationA.localeCompare(designationB);
+      });
+      
+      sortedEmployees.forEach((employee, index) => {
         const row = document.createElement('tr');
         row.style.borderBottom = '1px solid var(--border-color)';
         row.style.cursor = 'pointer';
