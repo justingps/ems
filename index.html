@@ -355,7 +355,6 @@
       width: 90%;
     }
 
-    /* New styles for employee summary */
     .employee-summary {
       display: flex;
       justify-content: space-between;
@@ -426,6 +425,28 @@
       gap: 1rem;
     }
 
+    .edit-form-container {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1rem;
+      box-shadow: 6px 6px 12px var(--shadow-dark),
+                  -6px -6px 12px var(--shadow-light);
+    }
+
+    .edit-form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -443,6 +464,10 @@
       }
 
       .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .edit-form-grid {
         grid-template-columns: 1fr;
       }
 
@@ -466,6 +491,11 @@
 
       .action-buttons button {
         flex: 1;
+      }
+
+      .modal-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
       }
     }
   </style>
@@ -676,6 +706,59 @@
       const year = date.getFullYear();
       return `${day}-${month}-${year}`;
     }
+
+    // Helper function to format dates for input type="date"
+    function formatDateForInput(dateStr) {
+      if (!dateStr || dateStr === '-') return '';
+      // Try parsing common date formats
+      const formats = [
+        { regex: /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/, parse: (match) => {
+          const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+          const day = parseInt(match[1]).toString().padStart(2, '0');
+          const month = (months.indexOf(match[2].toLowerCase()) + 1).toString().padStart(2, '0');
+          const year = match[3];
+          return `${year}-${month}-${day}`;
+        }},
+        { regex: /^(\d{4})-(\d{2})-(\d{2})$/, parse: (match) => `${match[1]}-${match[2]}-${match[3]}` },
+        { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, parse: (match) => `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})-(\d{1,2})-(\d{4})$/, parse: (match) => `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` }
+      ];
+      for (const format of formats) {
+        const match = dateStr.match(format.regex);
+        if (match) {
+          const formatted = format.parse(match);
+          // Validate the date
+          const date = new Date(formatted);
+          if (!isNaN(date)) return formatted;
+        }
+      }
+      return '';
+    }
+
+    // Helper function to parse timestamp for comparison
+    function parseTimestamp(timestampStr) {
+      if (!timestampStr || timestampStr === '-') return new Date(0);
+      // Handle common timestamp formats, e.g., "MM/DD/YYYY HH:MM:SS" or "YYYY-MM-DD HH:MM:SS"
+      const formats = [
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
+        /^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
+        /^(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/
+      ];
+      for (const regex of formats) {
+        const match = timestampStr.match(regex);
+        if (match) {
+          let year, month, day, hour, minute, second;
+          if (regex.toString().includes('/')) {
+            [_, month, day, year, hour, minute, second] = match;
+          } else {
+            [_, year, month, day, hour, minute, second] = match;
+          }
+          const date = new Date(year, month - 1, day, hour, minute, second);
+          return !isNaN(date) ? date : new Date(0);
+        }
+      }
+      return new Date(0); // Default to epoch if unparseable
+    }
     
     function openTab(tabName) {
       const tabContents = document.getElementsByClassName('tab-content');
@@ -848,6 +931,33 @@
     
     let employeeData = []; // Store employee data globally for export
     
+    // Function to get field value from employee object
+    function getField(employee, possibleNames) {
+      for (const name of possibleNames) {
+        for (const key in employee) {
+          if (key.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, '')) {
+            return employee[key] || '-';
+          }
+        }
+      }
+      return '-';
+    }
+    
+    // Function to filter latest entries by Employment ID
+    function filterLatestEntries(employees) {
+      const latestEntries = {};
+      employees.forEach(employee => {
+        const empId = getField(employee, ['Employment ID', 'ID', 'Employee ID']);
+        const timestamp = getField(employee, ['Timestamp']);
+        const parsedTimestamp = parseTimestamp(timestamp);
+        
+        if (!latestEntries[empId] || parsedTimestamp > parseTimestamp(latestEntries[empId].Timestamp)) {
+          latestEntries[empId] = employee;
+        }
+      });
+      return Object.values(latestEntries);
+    }
+    
     // Function to update employee summary
     function updateEmployeeSummary(employees) {
       if (!employees || employees.length === 0) {
@@ -863,17 +973,24 @@
       // Calculate designation summary
       const designationCounts = {};
       employees.forEach(employee => {
-        const designation = getField(employee, ['Designation', 'Position', 'Job Title']) || 'Unknown';
-        designationCounts[designation] = (designationCounts[designation] || 0) + 1;
+        const designation = getField(employee, ['Designation', 'Position', 'Job Title']);
+        if (designation && designation !== '-') {
+          designationCounts[designation] = (designationCounts[designation] || 0) + 1;
+        }
       });
       
       const designationSummary = document.getElementById('designationSummary');
       designationSummary.innerHTML = '';
       
-      Object.entries(designationCounts)
+      // Sort designations by count (descending) and show top 5
+      const sortedDesignations = Object.entries(designationCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 5) // Show top 5 designations
-        .forEach(([designation, count]) => {
+        .slice(0, 5);
+      
+      if (sortedDesignations.length === 0) {
+        designationSummary.innerHTML = '<div class="summary-item">No designations found</div>';
+      } else {
+        sortedDesignations.forEach(([designation, count]) => {
           const item = document.createElement('div');
           item.className = 'summary-item';
           item.innerHTML = `
@@ -882,20 +999,27 @@
           `;
           designationSummary.appendChild(item);
         });
+      }
       
       // Calculate employment type summary
       const employmentTypeCounts = {};
       employees.forEach(employee => {
-        const type = getField(employee, ['Employment Type', 'Type']) || 'Unknown';
-        employmentTypeCounts[type] = (employmentTypeCounts[type] || 0) + 1;
+        const type = getField(employee, ['Employment Type', 'Type']);
+        if (type && type !== '-') {
+          employmentTypeCounts[type] = (employmentTypeCounts[type] || 0) + 1;
+        }
       });
       
       const employmentTypeSummary = document.getElementById('employmentTypeSummary');
       employmentTypeSummary.innerHTML = '';
       
-      Object.entries(employmentTypeCounts)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([type, count]) => {
+      const sortedEmploymentTypes = Object.entries(employmentTypeCounts)
+        .sort((a, b) => b[1] - a[1]);
+      
+      if (sortedEmploymentTypes.length === 0) {
+        employmentTypeSummary.innerHTML = '<div class="summary-item">No employment types found</div>';
+      } else {
+        sortedEmploymentTypes.forEach(([type, count]) => {
           const item = document.createElement('div');
           item.className = 'summary-item';
           item.innerHTML = `
@@ -904,21 +1028,29 @@
           `;
           employmentTypeSummary.appendChild(item);
         });
+      }
       
       // Calculate nationality summary
       const nationalityCounts = {};
       employees.forEach(employee => {
-        const nationality = getField(employee, ['Nationality', 'Country']) || 'Unknown';
-        nationalityCounts[nationality] = (nationalityCounts[nationality] || 0) + 1;
+        const nationality = getField(employee, ['Nationality', 'Country']);
+        if (nationality && nationality !== '-') {
+          nationalityCounts[nationality] = (nationalityCounts[nationality] || 0) + 1;
+        }
       });
       
       const nationalitySummary = document.getElementById('nationalitySummary');
       nationalitySummary.innerHTML = '';
       
-      Object.entries(nationalityCounts)
+      // Sort nationalities by count (descending) and show top 5
+      const sortedNationalities = Object.entries(nationalityCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 5) // Show top 5 nationalities
-        .forEach(([nationality, count]) => {
+        .slice(0, 5);
+      
+      if (sortedNationalities.length === 0) {
+        nationalitySummary.innerHTML = '<div class="summary-item">No nationalities found</div>';
+      } else {
+        sortedNationalities.forEach(([nationality, count]) => {
           const item = document.createElement('div');
           item.className = 'summary-item';
           item.innerHTML = `
@@ -927,17 +1059,215 @@
           `;
           nationalitySummary.appendChild(item);
         });
+      }
     }
     
-    function getField(obj, possibleNames) {
-      for (const name of possibleNames) {
-        for (const key in obj) {
-          if (key.toLowerCase().replace(/\s+/g, '') === name.toLowerCase().replace(/\s+/g, '')) {
-            return obj[key] || '-';
+    // Function to show edit employee modal
+    function showEditEmployeeModal(employee) {
+      document.querySelectorAll('.modal').forEach(modal => modal.remove());
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      
+      let modalHtml = `
+        <div class="modal-content">
+          <h2 style="margin-top: 0; color: var(--primary-color);">Edit Employee</h2>
+          <div class="edit-form-container">
+            <div class="edit-form-grid">
+              <div class="form-group">
+                <label class="form-label required">Employment Type</label>
+                <input type="text" id="editEmploymentType" class="form-input" value="${getField(employee, ['Employment Type', 'Type'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Employment Category</label>
+                <input type="text" id="editEmploymentCategory" class="form-input" value="${getField(employee, ['Employment Category', 'Category'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Employment ID</label>
+                <input type="text" id="editEmploymentId" class="form-input" value="${getField(employee, ['Employment ID', 'ID', 'Employee ID'])}" required readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Employee Name</label>
+                <input type="text" id="editEmployeeName" class="form-input" value="${getField(employee, ['Employee Name', 'Name', 'Full Name'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Designation</label>
+                <input type="text" id="editDesignation" class="form-input" value="${getField(employee, ['Designation', 'Position', 'Job Title'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Nationality</label>
+                <input type="text" id="editNationality" class="form-input" value="${getField(employee, ['Nationality', 'Country'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Status</label>
+                <input type="text" id="editStatus" class="form-input" value="${getField(employee, ['Status', 'Employment Status'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Company</label>
+                <input type="text" id="editCompany" class="form-input" value="${getField(employee, ['Company', 'Employer'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Supplier Name</label>
+                <input type="text" id="editSupplierName" class="form-input" value="${getField(employee, ['Supplier Name', 'Supplier'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Mobile No</label>
+                <input type="tel" id="editMobileNo" class="form-input" value="${getField(employee, ['Mobile No', 'Mobile', 'Phone', 'Contact Number'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Res. ID</label>
+                <input type="text" id="editResId" class="form-input" value="${getField(employee, ['Res. ID', 'Res ID', 'Residence ID'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Res. ID Expiry</label>
+                <input type="date" id="editResIdExpiry" class="form-input" value="${formatDateForInput(getField(employee, ['Res. ID Expiry', 'Res ID Expiry', 'Residence ID Expiry']))}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Date of Birth</label>
+                <input type="date" id="editDob" class="form-input" value="${formatDateForInput(getField(employee, ['Date of Birth', 'DOB', 'Birth Date']))}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Date of First</label>
+                <input type="date" id="editDateOfFirst" class="form-input" value="${formatDateForInput(getField(employee, ['Date of First', 'First Date']))}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Reporting Date</label>
+                <input type="date" id="editReportingDate" class="form-input" value="${formatDateForInput(getField(employee, ['Reporting Date']))}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Reported From</label>
+                <input type="text" id="editReportedFrom" class="form-input" value="${getField(employee, ['Reported From'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Allocated To</label>
+                <input type="text" id="editAllocatedTo" class="form-input" value="${getField(employee, ['Allocated To'])}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Reporting To</label>
+                <input type="text" id="editReportingTo" class="form-input" value="${getField(employee, ['Reporting To'])}" required>
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label class="form-label required">Remarks</label>
+                <textarea id="editRemarks" class="form-input" rows="4" required>${getField(employee, ['Remarks', 'Notes', 'Comments'])}</textarea>
+              </div>
+            </div>
+            
+            <div class="modal-buttons">
+              <button id="cancelEditBtn" class="form-button">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+              <button id="saveEditBtn" class="form-button" style="background-color: var(--success-color); color: white;">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+            </div>
+            
+            <div id="editResponseMessage" class="response-message success-message hidden">
+              Changes saved successfully!
+            </div>
+            <div id="editErrorMessage" class="response-message error-message hidden"></div>
+          </div>
+        </div>
+      `;
+      
+      modal.innerHTML = modalHtml;
+      document.body.appendChild(modal);
+      
+      // Set up event listeners for the modal
+      document.getElementById('cancelEditBtn').addEventListener('click', () => {
+        modal.remove();
+      });
+      
+      document.getElementById('saveEditBtn').addEventListener('click', async () => {
+        const allFields = modal.querySelectorAll('.edit-form-grid input, .edit-form-grid textarea');
+        let isValid = true;
+        
+        allFields.forEach(field => {
+          if (!field.value.trim()) {
+            field.classList.add('required');
+            isValid = false;
+          } else {
+            field.classList.remove('required');
+          }
+        });
+        
+        if (!isValid) {
+          document.getElementById('editErrorMessage').textContent = 'Please fill in all fields';
+          document.getElementById('editErrorMessage').classList.remove('hidden');
+          document.getElementById('editResponseMessage').classList.add('hidden');
+          return;
+        }
+        
+        const editedData = {
+          employmentType: document.getElementById('editEmploymentType').value,
+          employmentCategory: document.getElementById('editEmploymentCategory').value,
+          employmentId: document.getElementById('editEmploymentId').value,
+          employeeName: document.getElementById('editEmployeeName').value,
+          designation: document.getElementById('editDesignation').value,
+          nationality: document.getElementById('editNationality').value,
+          status: document.getElementById('editStatus').value,
+          company: document.getElementById('editCompany').value,
+          supplierName: document.getElementById('editSupplierName').value,
+          mobileNo: document.getElementById('editMobileNo').value,
+          resId: document.getElementById('editResId').value,
+          resIdExpiry: document.getElementById('editResIdExpiry').value,
+          dob: document.getElementById('editDob').value,
+          dateOfFirst: document.getElementById('editDateOfFirst').value,
+          reportingDate: document.getElementById('editReportingDate').value,
+          reportedFrom: document.getElementById('editReportedFrom').value,
+          allocatedTo: document.getElementById('editAllocatedTo').value,
+          reportingTo: document.getElementById('editReportingTo').value,
+          remarks: document.getElementById('editRemarks').value,
+          action: 'update' // Add action type for the Google Apps Script
+        };
+
+        try {
+          const saveBtn = document.getElementById('saveEditBtn');
+          saveBtn.disabled = true;
+          saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+          
+          document.getElementById('editErrorMessage').classList.add('hidden');
+          document.getElementById('editResponseMessage').classList.add('hidden');
+          
+          await fetch('https://script.google.com/macros/s/AKfycbw_vBT3c9Q1JClr6jaYAwpvDwEET1rKElFOqvG8ghP8GckOMUOqxGPZIyuQXYizwDNUxg/exec', {
+            method: 'POST',
+            body: JSON.stringify(editedData),
+            headers: { 'Content-Type': 'application/json' },
+            mode: 'no-cors'
+          });
+          
+          document.getElementById('editResponseMessage').classList.remove('hidden');
+          document.getElementById('editErrorMessage').classList.add('hidden');
+          
+          // Refresh the employee list after a short delay
+          setTimeout(() => {
+            modal.remove();
+            loadEmployeeList();
+          }, 1500);
+        } catch (error) {
+          document.getElementById('editErrorMessage').textContent = `Error: ${error.message || 'Failed to save changes'}`;
+          document.getElementById('editErrorMessage').classList.remove('hidden');
+          document.getElementById('editResponseMessage').classList.add('hidden');
+        } finally {
+          const saveBtn = document.getElementById('saveEditBtn');
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
           }
         }
-      }
-      return '-';
+      });
+      
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+      
+      document.addEventListener('keydown', function handler(e) {
+        if (e.key === 'Escape') {
+          modal.remove();
+          document.removeEventListener('keydown', handler);
+        }
+      });
     }
     
     async function loadEmployeeList() {
@@ -954,7 +1284,10 @@
         }
         
         const csvText = await response.text();
-        employeeData = parseCSV(csvText);
+        let allEmployeeData = parseCSV(csvText);
+        
+        // Filter to keep only the latest entry for each Employment ID
+        employeeData = filterLatestEntries(allEmployeeData);
         
         if (employeeData.length > 0) {
           renderEmployeeTable(employeeData);
@@ -1011,8 +1344,11 @@
           </td>
           <td style="padding: 0.75rem;">${mobile}</td>
           <td style="padding: 0.75rem;">
-            <button class="form-button view-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+            <button class="form-button view-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;">
               <i class="fas fa-eye"></i> View
+            </button>
+            <button class="form-button edit-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background-color: var(--warning-color); color: white;">
+              <i class="fas fa-edit"></i> Edit
             </button>
           </td>
         `;
@@ -1022,8 +1358,13 @@
           showEmployeeDetails(employee);
         });
         
+        row.querySelector('.edit-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          showEditEmployeeModal(employee);
+        });
+        
         row.addEventListener('click', (e) => {
-          if (!e.target.closest('.view-btn')) {
+          if (!e.target.closest('.view-btn') && !e.target.closest('.edit-btn')) {
             showEmployeeDetails(employee);
           }
         });
