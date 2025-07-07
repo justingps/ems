@@ -726,7 +726,7 @@
           </div>
           
           <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
               <thead>
                 <tr style="background-color: var(--light-color);">
                   <th style="padding: 0.75rem; text-align: left; font-weight: 600;">S.No</th>
@@ -1045,18 +1045,9 @@
       if (sortedDesignations.length === 0) {
         designationSummary.innerHTML = '<div class="no-data">No designations found</div>';
       } else {
-        // Estimate optimal number of columns based on data length and max designation length
-        const maxDesignationLength = Math.max(...sortedDesignations.map(([designation]) => designation.length));
+        // Set fixed number of columns to 5
+        const numColumns = 5;
         const numItems = sortedDesignations.length;
-        let numColumns = 4; // Default
-        if (numItems <= 12) {
-          numColumns = 3; // Fewer items, use 3 columns for simplicity
-        } else if (numItems > 30 || maxDesignationLength > 30) {
-          numColumns = 6; // More items or longer names, use 6 columns
-        } else if (numItems > 20) {
-          numColumns = 5; // Medium to large number of items
-        }
-        
         const itemsPerColumn = Math.ceil(numItems / numColumns);
         
         // Create columns
@@ -1454,12 +1445,14 @@
           </td>
           <td style="padding: 0.75rem;">${mobile}</td>
           <td style="padding: 0.75rem;">
-            <button class="form-button view-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;">
-              <i class="fas fa-eye"></i> View
-            </button>
-            <button class="form-button edit-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background-color: var(--warning-color); color: white;">
-              <i class="fas fa-edit"></i> Edit
-            </button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="form-button view-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                <i class="fas fa-eye"></i> View
+              </button>
+              <button class="form-button edit-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background-color: var(--warning-color); color: white;">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+            </div>
           </td>
         `;
         
