@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <style>
     :root {
       --primary-color: #2563eb;
@@ -17,6 +18,7 @@
       --dark-color: #111827;
       --success-color: #059669;
       --warning-color: #d97706;
+      --warning-light-color: #fef3c7; /* Light color for logout button */
       --info-color: #2563eb;
       --background-color: #e5e7eb;
       --card-bg: #e5e7eb;
@@ -25,6 +27,8 @@
       --border-color: #d1d5db;
       --shadow-light: #ffffff;
       --shadow-dark: #b0b7c3;
+      --neumo-light: #f3f4f6;
+      --neumo-dark: #d1d5db;
     }
 
     * {
@@ -38,6 +42,120 @@
       background-color: var(--background-color);
       color: var(--text-color);
       line-height: 1.5;
+      overflow: hidden;
+    }
+
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+      z-index: -1;
+    }
+
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-box {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-box img.logo {
+      display: block;
+      margin: 0 auto 1.5rem;
+      height: 60px;
+      border-radius: 8px;
+    }
+
+    .login-box .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-top: 1.5rem;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .login-form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .login-form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--dark-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .login-form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--card-bg);
+      box-shadow: inset 4px 4px 8px var(--neumo-dark),
+                  inset -4px -4px 8px var(--neumo-light);
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      transition: all 0.2s;
+    }
+
+    .login-form-group input:focus {
+      outline: none;
+      box-shadow: inset 2px 2px 4px var(--neumo-dark),
+                  inset -2px -2px 4px var(--neumo-light),
+                  0 0 0 2px var(--primary-color);
+    }
+
+    .login-form-group input:invalid[required] {
+      box-shadow: inset 2px 2px 4px var(--neumo-dark),
+                  inset -2px -2px 4px var(--neumo-light),
+                  0 0 0 2px var(--accent-color);
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--card-bg);
+      color: var(--primary-color);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 4px 4px 8px var(--neumo-dark),
+                  -4px -4px 8px var(--neumo-light);
+    }
+
+    .login-button:hover {
+      box-shadow: inset 2px 2px 4px var(--neumo-dark),
+                  inset -2px -2px 4px var(--neumo-light);
+    }
+
+    .login-button:active {
+      box-shadow: inset 4px 4px 8px var(--neumo-dark),
+                  inset -4px -4px 8px var(--neumo-light);
+    }
+
+    .login-error {
+      color: #dc2626;
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      display: none;
     }
 
     .container {
@@ -48,6 +166,7 @@
       overflow: hidden;
       box-shadow: 6px 12px 12px var(--shadow-dark),
                   -6px -6px 12px var(--shadow-light);
+      display: none;
     }
 
     .header {
@@ -496,6 +615,26 @@
       margin-top: 1.5rem;
     }
 
+    .logout-button {
+      background: transparent;
+      color: var(--text-color);
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .logout-button:hover {
+      background: #f7e5a2;
+    }
+
+    .logout-button:active {
+      background: #f0d78a;
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -550,11 +689,34 @@
         flex-direction: column;
         gap: 0.5rem;
       }
+
+      .login-box {
+        width: 90%;
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div id="particles-js"></div>
+  <div id="loginContainer" class="login-container">
+    <div class="login-box">
+      <img src="https://justingps.github.io/dpr/logo.png" alt="Company Logo" class="logo">
+      <div class="login-form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter username" required>
+      </div>
+      <div class="login-form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password" required>
+      </div>
+      <button id="loginButton" class="login-button">Login</button>
+      <div id="loginError" class="login-error">Invalid username or password</div>
+      <div class="subtitle">GULF PETROCHEMICAL SERVICES LLC.</div>
+    </div>
+  </div>
+
+  <div class="container" id="mainContainer">
     <div class="header">
       <div class="logo-container">
         <img src="https://justingps.github.io/dpr/logo.png" alt="Company Logo" class="logo">
@@ -565,6 +727,7 @@
           <div><strong>TODAY:</strong> <span id="currentDate"></span></div>
         </div>
       </div>
+      <button id="logoutButton" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
 
     <div class="tabs">
@@ -679,7 +842,6 @@
         </div>
         
         <div id="employeeListContent" style="display: none;">
-          <!-- Employee Summary Section -->
           <div id="employeeSummary" class="employee-summary hidden">
             <div class="summary-card">
               <div class="summary-title">Total Employees</div>
@@ -687,19 +849,14 @@
             </div>
             <div class="summary-card">
               <div class="summary-title">Employment Type</div>
-              <div class="summary-details" id="employmentTypeSummary">
-                <!-- Will be populated by JavaScript -->
-              </div>
+              <div class="summary-details" id="employmentTypeSummary"></div>
             </div>
             <div class="summary-card">
               <div class="summary-title">Nationality</div>
-              <div class="summary-details" id="nationalitySummary">
-                <!-- Will be populated by JavaScript -->
-              </div>
+              <div class="summary-details" id="nationalitySummary"></div>
             </div>
           </div>
 
-          <!-- Designation Summary Card -->
           <div id="designationSummaryCard" class="designation-summary-card hidden">
             <div class="summary-title" id="designationSummaryToggle">
               Designation Summary <i class="fas fa-chevron-down"></i>
@@ -739,9 +896,7 @@
                   <th style="padding: 0.75rem; text-align: left; font-weight: 600;">Actions</th>
                 </tr>
               </thead>
-              <tbody id="employeeTableBody">
-                <!-- Will be populated by JavaScript -->
-              </tbody>
+              <tbody id="employeeTableBody"></tbody>
             </table>
           </div>
         </div>
@@ -750,6 +905,88 @@
   </div>
 
   <script>
+    // Initialize particles.js
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: '#ffffff' },
+        shape: { type: 'circle', stroke: { width: 0, color: '#000000' } },
+        opacity: { value: 0.5, random: false },
+        size: { value: 3, random: true },
+        line_linked: {
+          enable: true,
+          distance: 150,
+          color: '#ffffff',
+          opacity: 0.4,
+          width: 1
+        },
+        move: {
+          enable: true,
+          speed: 2,
+          direction: 'none',
+          random: false,
+          straight: false,
+          out_mode: 'out',
+          bounce: false
+        }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: {
+          onhover: { enable: true, mode: 'grab' },
+          onclick: { enable: true, mode: 'push' },
+          resize: true
+        },
+        modes: {
+          grab: { distance: 140, line_linked: { opacity: 1 } },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
+    });
+
+    // Login functionality
+    const validCredentials = {
+      username: 'gpsoman',
+      password: 'gpsoman'
+    };
+
+    document.getElementById('loginButton').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const loginError = document.getElementById('loginError');
+
+      if (username === validCredentials.username && password === validCredentials.password) {
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'block';
+        document.getElementById('particles-js').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        loginError.style.display = 'none';
+        // Preload employee data immediately after login
+        loadEmployeeList();
+      } else {
+        loginError.style.display = 'block';
+      }
+    });
+
+    // Allow Enter key to trigger login
+    document.getElementById('password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('loginButton').click();
+      }
+    });
+
+    // Logout functionality
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      document.getElementById('mainContainer').style.display = 'none';
+      document.getElementById('loginContainer').style.display = 'flex';
+      document.getElementById('particles-js').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('loginError').style.display = 'none';
+    });
+
     // Set current date
     const today = new Date();
     document.getElementById('currentDate').textContent = formatDateForDisplay(today);
@@ -765,7 +1002,6 @@
     // Helper function to format dates for input type="date"
     function formatDateForInput(dateStr) {
       if (!dateStr || dateStr === '-') return '';
-      // Try parsing common date formats
       const formats = [
         { regex: /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/, parse: (match) => {
           const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -782,7 +1018,6 @@
         const match = dateStr.match(format.regex);
         if (match) {
           const formatted = format.parse(match);
-          // Validate the date
           const date = new Date(formatted);
           if (!isNaN(date)) return formatted;
         }
@@ -793,7 +1028,6 @@
     // Helper function to parse timestamp for comparison
     function parseTimestamp(timestampStr) {
       if (!timestampStr || timestampStr === '-') return new Date(0);
-      // Handle common timestamp formats, e.g., "MM/DD/YYYY HH:MM:SS" or "YYYY-MM-DD HH:MM:SS"
       const formats = [
         /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
         /^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
@@ -812,7 +1046,7 @@
           return !isNaN(date) ? date : new Date(0);
         }
       }
-      return new Date(0); // Default to epoch if unparseable
+      return new Date(0);
     }
     
     function openTab(tabName) {
@@ -829,12 +1063,12 @@
       document.getElementById(tabName).classList.add('active');
       event.currentTarget.classList.add('active');
       
-      if (tabName === 'employeeList') {
-        loadEmployeeList();
+      if (tabName === 'employeeList' && employeeData.length > 0) {
+        renderEmployeeTable(employeeData);
+        updateEmployeeSummary(employeeData);
       }
     }
     
-    // Form submission handler
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const allFields = document.querySelectorAll('#formContainer input, #formContainer textarea');
       let isValid = true;
@@ -915,12 +1149,10 @@
       }
     });
     
-    // CSV Helper Functions
     function parseCSV(csvText) {
       const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
       if (lines.length === 0) return [];
       
-      // Parse headers
       let headers = [];
       let currentLine = lines[0];
       let inQuotes = false;
@@ -948,7 +1180,6 @@
       
       const result = [];
       
-      // Parse data rows
       for (let i = 1; i < lines.length; i++) {
         let row = lines[i];
         let fields = [];
@@ -984,9 +1215,8 @@
       return result;
     }
     
-    let employeeData = []; // Store employee data globally for export
+    let employeeData = [];
     
-    // Function to get field value from employee object
     function getField(employee, possibleNames) {
       for (const name of possibleNames) {
         for (const key in employee) {
@@ -998,7 +1228,6 @@
       return '-';
     }
     
-    // Function to filter latest entries by Employment ID
     function filterLatestEntries(employees) {
       const latestEntries = {};
       employees.forEach(employee => {
@@ -1013,7 +1242,6 @@
       return Object.values(latestEntries);
     }
     
-    // Function to update employee summary
     function updateEmployeeSummary(employees) {
       if (!employees || employees.length === 0) {
         document.getElementById('employeeSummary').classList.add('hidden');
@@ -1024,10 +1252,8 @@
       document.getElementById('employeeSummary').classList.remove('hidden');
       document.getElementById('designationSummaryCard').classList.remove('hidden');
       
-      // Update total employees count
       document.getElementById('totalEmployees').textContent = employees.length;
       
-      // Calculate designation summary
       const designationCounts = {};
       employees.forEach(employee => {
         const designation = getField(employee, ['Designation', 'Position', 'Job Title']);
@@ -1040,23 +1266,20 @@
       designationSummary.innerHTML = '';
       
       const sortedDesignations = Object.entries(designationCounts)
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])); // Sort by count (descending), then alphabetically
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
       
       if (sortedDesignations.length === 0) {
         designationSummary.innerHTML = '<div class="no-data">No designations found</div>';
       } else {
-        // Set fixed number of columns to 5
         const numColumns = 5;
         const numItems = sortedDesignations.length;
         const itemsPerColumn = Math.ceil(numItems / numColumns);
         
-        // Create columns
         const table = document.createElement('table');
         table.className = 'designation-table';
         const tbody = document.createElement('tbody');
         const rows = [];
         
-        // Create rows with items distributed across columns
         for (let i = 0; i < itemsPerColumn; i++) {
           const row = document.createElement('tr');
           for (let j = 0; j < numColumns; j++) {
@@ -1072,7 +1295,7 @@
                 </td>
               `;
             } else {
-              row.innerHTML += '<td></td>'; // Empty cell for alignment
+              row.innerHTML += '<td></td>';
             }
           }
           rows.push(row);
@@ -1083,7 +1306,6 @@
         designationSummary.appendChild(table);
       }
       
-      // Calculate employment type summary
       const employmentTypeCounts = {};
       employees.forEach(employee => {
         const type = getField(employee, ['Employment Type', 'Type']);
@@ -1112,7 +1334,6 @@
         });
       }
       
-      // Calculate nationality summary
       const nationalityCounts = {};
       employees.forEach(employee => {
         const nationality = getField(employee, ['Nationality', 'Country']);
@@ -1142,7 +1363,6 @@
         });
       }
 
-      // Set up toggle for designation summary
       const toggle = document.getElementById('designationSummaryToggle');
       const summary = document.getElementById('designationSummary');
       toggle.addEventListener('click', () => {
@@ -1152,7 +1372,6 @@
       });
     }
     
-    // Function to show edit employee modal
     function showEditEmployeeModal(employee) {
       document.querySelectorAll('.modal').forEach(modal => modal.remove());
       
@@ -1262,7 +1481,6 @@
       modal.innerHTML = modalHtml;
       document.body.appendChild(modal);
       
-      // Set up event listeners for the modal
       document.getElementById('cancelEditBtn').addEventListener('click', () => {
         modal.remove();
       });
@@ -1307,7 +1525,7 @@
           allocatedTo: document.getElementById('editAllocatedTo').value,
           reportingTo: document.getElementById('editReportingTo').value,
           remarks: document.getElementById('editRemarks').value,
-          action: 'update' // Add action type for the Google Apps Script
+          action: 'update'
         };
 
         try {
@@ -1328,7 +1546,6 @@
           document.getElementById('editResponseMessage').classList.remove('hidden');
           document.getElementById('editErrorMessage').classList.add('hidden');
           
-          // Refresh the employee list after a short delay
           setTimeout(() => {
             modal.remove();
             loadEmployeeList();
@@ -1368,7 +1585,7 @@
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQzjTfS6kvP94ofoE8Ck3R_I-uGlJ9aa4dpJ-mpChe4LZKYKM4j3twkBQNtsP0QpAmzeZDI2Utfg5RC/pub?gid=0&single=true&output=csv';
         const timestamp = new Date().getTime();
         const response = await fetch(`${csvUrl}&t=${timestamp}`, {
-          cache: 'no-store' // Ensure fresh data is fetched
+          cache: 'no-store'
         });
         
         if (!response.ok) {
@@ -1378,25 +1595,29 @@
         const csvText = await response.text();
         let allEmployeeData = parseCSV(csvText);
         
-        // Filter to keep only the latest entry for each Employment ID
         employeeData = filterLatestEntries(allEmployeeData);
         
         if (employeeData.length > 0) {
-          renderEmployeeTable(employeeData);
-          updateEmployeeSummary(employeeData);
+          if (document.getElementById('employeeList').classList.contains('active')) {
+            renderEmployeeTable(employeeData);
+            updateEmployeeSummary(employeeData);
+          }
         } else {
-          renderEmployeeTable([]);
-          document.getElementById('employeeTableBody').innerHTML = 
-            '<tr><td colspan="8" class="no-data">No employee records found</td></tr>';
-          document.getElementById('employeeSummary').classList.add('hidden');
-          document.getElementById('designationSummaryCard').classList.add('hidden');
+          if (document.getElementById('employeeList').classList.contains('active')) {
+            document.getElementById('employeeTableBody').innerHTML = 
+              '<tr><td colspan="8" class="no-data">No employee records found</td></tr>';
+            document.getElementById('employeeSummary').classList.add('hidden');
+            document.getElementById('designationSummaryCard').classList.add('hidden');
+          }
         }
       } catch (error) {
         console.error('Error loading employee data:', error);
-        document.getElementById('employeeTableBody').innerHTML = 
-          `<tr><td colspan="8" class="no-data">Error loading employee data: ${error.message}</td></tr>`;
-        document.getElementById('employeeSummary').classList.add('hidden');
-        document.getElementById('designationSummaryCard').classList.add('hidden');
+        if (document.getElementById('employeeList').classList.contains('active')) {
+          document.getElementById('employeeTableBody').innerHTML = 
+            `<tr><td colspan="8" class="no-data">Error loading employee data: ${error.message}</td></tr>`;
+          document.getElementById('employeeSummary').classList.add('hidden');
+          document.getElementById('designationSummaryCard').classList.add('hidden');
+        }
       } finally {
         document.getElementById('employeeListLoading').style.display = 'none';
         document.getElementById('employeeListContent').style.display = 'block';
@@ -1414,7 +1635,6 @@
         return;
       }
       
-      // Sort employees by Designation
       const sortedEmployees = [...employees].sort((a, b) => {
         const designationA = getField(a, ['Designation', 'Position', 'Job Title']).toLowerCase();
         const designationB = getField(b, ['Designation', 'Position', 'Job Title']).toLowerCase();
@@ -1529,14 +1749,12 @@
       });
     }
     
-    // Download Excel functionality
     function downloadExcel() {
       if (!employeeData.length) {
         alert('No employee data available to download.');
         return;
       }
       
-      // Prepare data for Excel
       const worksheetData = employeeData.map((employee, index) => {
         const row = { 'S.No': index + 1 };
         for (const key in employee) {
@@ -1551,7 +1769,6 @@
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
       
-      // Generate Excel file and trigger download
       XLSX.writeFile(workbook, `Employee_Records_${formatDateForDisplay(new Date())}.xlsx`);
     }
     
@@ -1574,10 +1791,6 @@
     
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize page
-      // Load employee list only if the employeeList tab is active
-      if (document.getElementById('employeeList').classList.contains('active')) {
-        loadEmployeeList();
-      }
     });
   </script>
 </body>
