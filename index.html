@@ -1,145 +1,1073 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Management System</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>GPS · VoR & Day-Works Tracker</title>
+  <link rel="icon" href="https://justingps.github.io/dpr/logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    :root {
+      --font:'DM Sans',system-ui,sans-serif;
+      --mono:'DM Mono',monospace;
+      --accent:#E07B39;--accent-h:#C96929;--accent-l:rgba(224,123,57,0.1);
+      --blue:#3B82F6;--blue-l:rgba(59,130,246,0.1);
+      --green:#10B981;--green-l:rgba(16,185,129,0.1);
+      --red:#EF4444;--red-l:rgba(239,68,68,0.1);
+      --amber:#F59E0B;--amber-l:rgba(245,158,11,0.1);
+      --purple:#8B5CF6;--purple-l:rgba(139,92,246,0.1);
+      --radius:8px;--radius-lg:12px;--radius-xl:16px;
+      --topbar-h:58px;
+      --transition:0.18s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    [data-theme="dark"]{
+      --bg:#0C0E14;--bg2:#11141C;--surface:#161B27;--surface2:#1D2436;--surface3:#232D42;
+      --border:rgba(255,255,255,0.06);--border-br:rgba(255,255,255,0.1);--border-focus:rgba(224,123,57,0.5);
+      --text:#E8EDF5;--text-sub:#8494AF;--text-dim:#3D4D66;
+      --shadow:0 8px 32px rgba(0,0,0,0.6);--shadow-sm:0 2px 8px rgba(0,0,0,0.4);
+      --input-bg:#1D2436;--scroll-thumb:#2C3A55;
+      --modal-bg:rgba(0,0,0,0.75);
+      --topbar-bg:rgba(12,14,20,0.95);
+    }
+
+    [data-theme="light"]{
+      --bg:#F3F5F8;--bg2:#EAECF1;--surface:#FFFFFF;--surface2:#F7F8FB;--surface3:#EEF0F5;
+      --border:rgba(0,0,0,0.06);--border-br:rgba(0,0,0,0.1);--border-focus:rgba(224,123,57,0.4);
+      --text:#111827;--text-sub:#6B7280;--text-dim:#9CA3AF;
+      --shadow:0 4px 24px rgba(0,0,0,0.08);--shadow-sm:0 2px 8px rgba(0,0,0,0.06);
+      --input-bg:#F3F5F8;--scroll-thumb:#D1D5DB;
+      --modal-bg:rgba(0,0,0,0.45);
+      --topbar-bg:rgba(255,255,255,0.97);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;
+      transition:background var(--transition),color var(--transition);
+      -webkit-font-smoothing:antialiased;
+    }
+
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:10px}
+
+    /* Login Screen */
+    #login-screen {
+      position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+      background:var(--bg);
+    }
+    .login-dots {
+      position:absolute;inset:0;pointer-events:none;
+      background-image:radial-gradient(var(--border-br) 1px,transparent 1px);
+      background-size:28px 28px;
+    }
+    .login-card {
+      position:relative;z-index:1;width:420px;
+      background:var(--surface);border:1px solid var(--border-br);border-radius:var(--radius-xl);
+      padding:44px 40px;box-shadow:var(--shadow);
+      animation:fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes scaleIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+
+    .login-brand {
+      display:flex;align-items:center;gap:14px;margin-bottom:32px;
+      padding-bottom:20px;border-bottom:1px solid var(--border);
+    }
+    .login-brand img{width:42px;height:42px;border-radius:10px;object-fit:contain;background:var(--surface2);padding:6px;border:1px solid var(--border-br)}
+    .login-brand-name{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;}
+    .login-brand-sub{font-size:0.65rem;color:var(--text-sub);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
+    .login-heading{font-size:1.6rem;font-weight:700;margin-bottom:5px;}
+    .login-sub{font-size:0.875rem;color:var(--text-sub);margin-bottom:28px;}
+    .field-wrap{margin-bottom:16px}
+    .field-label{display:block;font-size:0.7rem;font-weight:600;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;}
+    .field-inner{position:relative}
+    .field-inner i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.85rem;}
+    .field-inner input{width:100%;padding:11px 13px 11px 38px;background:var(--input-bg);border:1.5px solid var(--border-br);border-radius:var(--radius);color:var(--text);outline:none;font-family:var(--font);font-size:0.9rem;}
+    .field-inner input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(224,123,57,0.12)}
+    .btn-login{width:100%;padding:12px;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-weight:600;text-transform:uppercase;cursor:pointer;font-family:var(--font);font-size:0.85rem;letter-spacing:0.06em;}
+    .btn-login:hover{background:var(--accent-h);transform:translateY(-1px);}
+    .login-error{display:none;align-items:center;gap:8px;color:var(--red);margin-top:12px;padding:10px 14px;background:var(--red-l);border-radius:var(--radius);font-size:0.85rem;}
+    .login-theme-toggle{position:absolute;top:18px;right:18px}
+    .login-footer{margin-top:28px;font-size:0.7rem;color:var(--text-dim);text-align:center;}
+
+    /* Theme Toggle */
+    .theme-toggle{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border-br);border-radius:40px;padding:3px;gap:2px;}
+    .theme-opt{padding:5px 12px;border-radius:30px;font-size:0.72rem;font-weight:600;color:var(--text-sub);display:flex;align-items:center;gap:5px;cursor:pointer;}
+    .theme-opt.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm);}
+    .theme-opt i{font-size:0.7rem;}
+
+    /* Dashboard */
+    #dashboard{display:none;flex-direction:column;min-height:100vh}
+    .topbar {
+      position:sticky;top:0;z-index:80;display:flex;align-items:center;justify-content:space-between;
+      padding:0 24px;height:var(--topbar-h);background:var(--topbar-bg);
+      border-bottom:1px solid var(--border);backdrop-filter:blur(20px);
+    }
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-logo{width:34px;height:34px;border-radius:8px;object-fit:contain;background:var(--surface2);padding:5px;border:1px solid var(--border-br);}
+    .topbar-name{font-size:1rem;font-weight:700;}
+    .topbar-meta{font-size:0.6rem;color:var(--text-sub);font-weight:500;text-transform:uppercase;}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .topbar-date{font-size:0.75rem;color:var(--text-sub);padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;}
+    .btn-logout{display:flex;align-items:center;gap:6px;padding:6px 14px;background:transparent;border:1px solid var(--border-br);border-radius:20px;color:var(--text-sub);cursor:pointer;font-weight:500;font-size:0.78rem;}
+    .btn-logout:hover{background:var(--red-l);border-color:rgba(239,68,68,0.3);color:var(--red)}
+
+    /* Content */
+    .content{padding:24px;width:100%;animation:fadeIn 0.3s ease;}
+    .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+    .page-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.025em;}
+    .page-title span{color:var(--accent)}
+    .page-subtitle{font-size:0.8rem;color:var(--text-sub);margin-top:4px;}
+    .page-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--radius);font-weight:600;cursor:pointer;font-family:var(--font);font-size:0.8rem;border:none;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-primary:hover{background:var(--accent-h);transform:translateY(-1px);}
+    .btn-ghost{background:transparent;color:var(--text-sub);border:1px solid var(--border-br);}
+    .btn-ghost:hover{background:var(--surface2);color:var(--text);}
+    .btn-excel{background:var(--green-l);color:var(--green);border:1px solid rgba(16,185,129,0.2);}
+    .btn-excel:hover{background:rgba(16,185,129,0.15);}
+    .btn-refresh{background:var(--blue-l);color:var(--blue);border:1px solid rgba(59,130,246,0.2);}
+    .btn-refresh:hover{background:rgba(59,130,246,0.15);}
+
+    /* KPI Cards */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+    .kpi-card {
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+      padding:16px;cursor:pointer;transition:all var(--transition);
+      position:relative;
+    }
+    .kpi-card:hover{border-color:var(--border-br);transform:translateY(-2px);box-shadow:var(--shadow-sm);}
+    .kpi-value{font-size:1.8rem;font-weight:700;margin-bottom:4px;}
+    .kpi-label{font-size:0.7rem;font-weight:600;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.06em;}
+    .kpi-icon{font-size:1rem;margin-bottom:8px;}
+
+    /* Filters */
+    .filters-wrap {
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+      padding:16px;margin-bottom:20px;
+    }
+    .filters-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;}
+    .filter-group{flex:1;min-width:160px;}
+    .filter-label{display:block;font-size:0.7rem;font-weight:600;color:var(--text-sub);margin-bottom:4px;}
+    .f-input{width:100%;padding:8px 12px;background:var(--input-bg);border:1px solid var(--border-br);border-radius:var(--radius);color:var(--text);outline:none;font-family:var(--font);font-size:0.85rem;}
+    .f-input:focus{border-color:var(--border-focus);}
+    .filter-clear{padding:8px 16px;background:var(--accent-l);color:var(--accent);border:1px solid rgba(224,123,57,0.2);border-radius:var(--radius);cursor:pointer;font-weight:600;font-size:0.8rem;display:none;}
+    .filter-clear.visible{display:block;}
+
+    /* Table */
+    .table-wrap{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+      overflow:auto;
+      width:100%;
+    }
+    .table-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+    .table-title{font-size:1rem;font-weight:700;}
+    .record-count{font-size:0.75rem;font-weight:600;color:var(--accent);background:var(--accent-l);padding:4px 12px;border-radius:20px;}
+    .data-table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1200px;
+    }
+    .data-table th {
+      padding:12px;font-size:0.7rem;font-weight:600;
+      color:var(--text-sub);text-transform:uppercase;letter-spacing:0.06em;
+      background:var(--surface2);border-bottom:2px solid var(--border);text-align:left;
+      white-space:nowrap;
+    }
+    .data-table td{
+      padding:12px;font-size:0.8rem;color:var(--text);
+      border-bottom:1px solid var(--border);
+      vertical-align:top;
+    }
+    .data-table tbody tr:hover td{background:var(--surface2);}
+    
+    /* Status badges */
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+    .badge-approved{background:var(--green-l);color:var(--green);}
+    .badge-rejected{background:var(--red-l);color:var(--red);}
+    .badge-draft{background:var(--amber-l);color:var(--amber);}
+    .badge-submitted{background:var(--blue-l);color:var(--blue);}
+    .badge-review{background:var(--purple-l);color:var(--purple);}
+    .badge-closed{background:var(--surface2);color:var(--text-sub);}
+    
+    /* Priority badges */
+    .priority-high{color:var(--red);font-weight:700;}
+    .priority-medium{color:var(--amber);font-weight:600;}
+    .priority-low{color:var(--green);font-weight:600;}
+    
+    /* Actions */
+    .cell-actions{display:flex;gap:8px;}
+    .icon-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border-br);background:transparent;cursor:pointer;color:var(--text-dim);transition:all var(--transition);}
+    .icon-btn:hover{background:var(--surface2);color:var(--text);}
+    .icon-btn.edit:hover{color:var(--blue);border-color:var(--blue);}
+    .icon-btn.delete:hover{color:var(--red);border-color:var(--red);}
+
+    /* Modal */
+    .modal-overlay{
+      position:fixed;inset:0;z-index:900;background:var(--modal-bg);
+      backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;
+      padding:20px;
+    }
+    .modal-overlay.active{display:flex;}
+    .modal-dialog{
+      background:var(--surface);border:1px solid var(--border-br);border-radius:var(--radius-xl);
+      width:100%;max-width:800px;max-height:90vh;overflow-y:auto;
+      box-shadow:var(--shadow);animation:scaleIn 0.22s ease;
+    }
+    .modal-header{
+      padding:20px 24px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .modal-title{font-size:1.2rem;font-weight:700;}
+    .modal-close{width:32px;height:32px;border-radius:6px;border:1px solid var(--border-br);background:transparent;cursor:pointer;}
+    .modal-close:hover{background:var(--red-l);color:var(--red);}
+    .modal-body{padding:24px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .form-group{display:flex;flex-direction:column;gap:6px;}
+    .form-group.full-width{grid-column:span 2;}
+    .form-label{font-size:0.75rem;font-weight:600;color:var(--text-sub);text-transform:uppercase;}
+    .form-label .required{color:var(--red);}
+    .form-input{
+      padding:10px 12px;background:var(--input-bg);border:1px solid var(--border-br);
+      border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:0.85rem;
+    }
+    .form-input:focus{outline:none;border-color:var(--accent);}
+    textarea.form-input{min-height:80px;resize:vertical;}
+    .modal-footer{
+      padding:16px 24px;border-top:1px solid var(--border);
+      display:flex;justify-content:flex-end;gap:12px;
+    }
+    .btn-modal-save{padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;}
+    .btn-modal-cancel{padding:10px 24px;background:transparent;border:1px solid var(--border-br);border-radius:var(--radius);cursor:pointer;}
+
+    /* Toast */
+    #app-toasts{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:8px;}
+    .toast{
+      background:var(--surface);border:1px solid var(--border-br);
+      padding:12px 16px;border-radius:var(--radius);box-shadow:var(--shadow);
+      display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease;
+    }
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .toast.success .toast-icon{color:var(--green);}
+    .toast.error .toast-icon{color:var(--red);}
+    
+    /* Empty state */
+    .empty-state{text-align:center;padding:60px 20px;color:var(--text-dim);}
+    .empty-state i{font-size:3rem;margin-bottom:16px;opacity:0.3;}
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl">
-    <h1 class="text-2xl font-bold mb-6 text-center">Employee Management Form</h1>
-    <div id="form-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Employment Type</label>
-        <input type="text" id="employmentType" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Employment Category</label>
-        <input type="text" id="employmentCategory" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Employment ID</label>
-        <input type="text" id="employmentId" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Employee Name</label>
-        <input type="text" id="employeeName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Designation</label>
-        <input type="text" id="designation" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Nationality</label>
-        <input type="text" id="nationality" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Status</label>
-        <input type="text" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Company</label>
-        <input type="text" id="company" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Supplier Name</label>
-        <input type="text" id="supplierName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Mobile No</label>
-        <input type="tel" id="mobileNo" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Res. ID</label>
-        <input type="text" id="resId" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Res. ID Expiry</label>
-        <input type="date" id="resIdExpiry" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
-        <input type="date" id="dob" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Date of First</label>
-        <input type="date" id="dateOfFirst" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Reporting Date</label>
-        <input type="date" id="reportingDate" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Reported From</label>
-        <input type="text" id="reportedFrom" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Allocated To</label>
-        <input type="text" id="allocatedTo" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Reporting To</label>
-        <input type="text" id="reportingTo" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
-      </div>
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700">Remarks</label>
-        <textarea id="remarks" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" rows="4"></textarea>
-      </div>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-dots"></div>
+  <div class="login-theme-toggle">
+    <div class="theme-toggle" id="login-theme-btn">
+      <div class="theme-opt" data-t="dark"><i class="fas fa-moon"></i> Dark</div>
+      <div class="theme-opt active" data-t="light"><i class="fas fa-sun"></i> Light</div>
     </div>
-    <div class="mt-6 text-center">
-      <button id="submitBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
-    </div>
-    <p id="responseMessage" class="mt-4 text-center text-green-600 hidden">Form submitted successfully!</p>
-    <p id="errorMessage" class="mt-4 text-center text-red-600 hidden"></p>
   </div>
+  <div class="login-card">
+    <div class="login-brand">
+      <img src="https://justingps.github.io/dpr/logo.png" alt="GPS">
+      <div>
+        <div class="login-brand-name">Gulf Petrochemical</div>
+        <div class="login-brand-sub">Field Operations · GPS</div>
+      </div>
+    </div>
+    <h2 class="login-heading">VoR & Day-Works</h2>
+    <p class="login-sub">Sign in to access the tracker dashboard</p>
+    <div class="field-wrap">
+      <label class="field-label">Username</label>
+      <div class="field-inner">
+        <i class="fas fa-user"></i>
+        <input type="text" id="username" placeholder="Enter username">
+      </div>
+    </div>
+    <div class="field-wrap">
+      <label class="field-label">Password</label>
+      <div class="field-inner">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="password" placeholder="Enter password">
+      </div>
+    </div>
+    <button class="btn-login" id="loginBtn"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
+    <div class="login-error" id="loginError"><i class="fas fa-circle-exclamation"></i> Invalid credentials</div>
+    <div class="login-footer">© 2025 Gulf Petrochemical Services LLC.</div>
+  </div>
+</div>
 
-  <script>
-    document.getElementById('submitBtn').addEventListener('click', async () => {
-      const data = {
-        employmentType: document.getElementById('employmentType').value,
-        employmentCategory: document.getElementById('employmentCategory').value,
-        employmentId: document.getElementById('employmentId').value,
-        employeeName: document.getElementById('employeeName').value,
-        designation: document.getElementById('designation').value,
-        nationality: document.getElementById('nationality').value,
-        status: document.getElementById('status').value,
-        company: document.getElementById('company').value,
-        supplierName: document.getElementById('supplierName').value,
-        mobileNo: document.getElementById('mobileNo').value,
-        resId: document.getElementById('resId').value,
-        resIdExpiry: document.getElementById('resIdExpiry').value,
-        dob: document.getElementById('dob').value,
-        dateOfFirst: document.getElementById('dateOfFirst').value,
-        reportingDate: document.getElementById('reportingDate').value,
-        reportedFrom: document.getElementById('reportedFrom').value,
-        allocatedTo: document.getElementById('allocatedTo').value,
-        reportingTo: document.getElementById('reportingTo').value,
-        remarks: document.getElementById('remarks').value
-      };
+<!-- Dashboard -->
+<div id="dashboard">
+  <header class="topbar">
+    <div class="topbar-left">
+      <img src="https://justingps.github.io/dpr/logo.png" alt="GPS" class="topbar-logo">
+      <div>
+        <div class="topbar-name">Gulf Petrochemical Services</div>
+        <div class="topbar-meta">VoR & Day-Works Tracker</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="currentDate"></div>
+      <div class="theme-toggle" id="dash-theme-btn">
+        <div class="theme-opt" data-t="dark"><i class="fas fa-moon"></i> Dark</div>
+        <div class="theme-opt active" data-t="light"><i class="fas fa-sun"></i> Light</div>
+      </div>
+      <button class="btn-logout" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </header>
 
-      try {
-          const response = await fetch('https://script.google.com/macros/s/AKfycbw_vBT3c9Q1JClr6jaYAwpvDwEET1rKElFOqvG8ghP8GckOMUOqxGPZIyuQXYizwDNUxg/exec', {
-            method: 'POST',
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
-            mode: 'no-cors' // Add this line
-          });
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-          document.getElementById('responseMessage').classList.remove('hidden');
-          document.getElementById('errorMessage').classList.add('hidden');
-          document.getElementById('form-container').querySelectorAll('input, textarea').forEach(input => input.value = '');
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (error) {
-        document.getElementById('errorMessage').textContent = `Error: ${error.message}`;
-        document.getElementById('errorMessage').classList.remove('hidden');
-        document.getElementById('responseMessage').classList.add('hidden');
-      }
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">VoR & <span>Day-Works Tracker</span></h1>
+        <p class="page-subtitle">Manage variation orders, day-works, and change orders across all sites</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-excel" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+        <button class="btn btn-refresh" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> New Record</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card" onclick="applyKpiFilter('all')">
+        <div class="kpi-icon"><i class="fas fa-file-alt"></i></div>
+        <div class="kpi-value" id="totalCount">0</div>
+        <div class="kpi-label">Total Requests</div>
+      </div>
+      <div class="kpi-card" onclick="applyKpiFilter('approved')">
+        <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="kpi-value" id="approvedCount">0</div>
+        <div class="kpi-label">Approved</div>
+      </div>
+      <div class="kpi-card" onclick="applyKpiFilter('rejected')">
+        <div class="kpi-icon"><i class="fas fa-times-circle"></i></div>
+        <div class="kpi-value" id="rejectedCount">0</div>
+        <div class="kpi-label">Rejected</div>
+      </div>
+      <div class="kpi-card" onclick="applyKpiFilter('pending')">
+        <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+        <div class="kpi-value" id="pendingCount">0</div>
+        <div class="kpi-label">Pending</div>
+      </div>
+      <div class="kpi-card" onclick="applyKpiFilter('high')">
+        <div class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="kpi-value" id="highPriorityCount">0</div>
+        <div class="kpi-label">High Priority</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-wrap">
+      <div class="filters-row">
+        <div class="filter-group">
+          <label class="filter-label">Search</label>
+          <input type="text" id="searchInput" class="f-input" placeholder="Search any field..." oninput="filterData()">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Category</label>
+          <select id="categoryFilter" class="f-input" onchange="filterData()">
+            <option value="">All</option>
+            <option value="VoR">VoR</option>
+            <option value="Daywork">Daywork</option>
+            <option value="Change Order">Change Order</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <select id="statusFilter" class="f-input" onchange="filterData()">
+            <option value="">All</option>
+            <option value="Draft">Draft</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Priority</label>
+          <select id="priorityFilter" class="f-input" onchange="filterData()">
+            <option value="">All</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <button class="filter-clear" id="clearFiltersBtn" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">VoR & Day-Works Register</div>
+        <div class="record-count" id="recordCount">0 records</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="dataTable">
+          <thead>
+            <tr>
+              <th>Sr No</th>
+              <th>GPS PM/PE</th>
+              <th>VOR No</th>
+              <th>Rev</th>
+              <th>OXY PM/PE</th>
+              <th>Category</th>
+              <th>Work Description</th>
+              <th>Discipline</th>
+              <th>Date Submitted</th>
+              <th>Date Approved</th>
+              <th>Status</th>
+              <th>Aging</th>
+              <th>Priority</th>
+              <th>Approved Value (OMR)</th>
+              <th>Remarks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="16">
+                <div class="empty-state">
+                  <i class="fas fa-database"></i>
+                  <p>Loading records...</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="recordModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Add New Record</h3>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="recordForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">GPS PM/PE <span class="required">*</span></label>
+            <input type="text" id="gpsPmPe" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">VOR No <span class="required">*</span></label>
+            <input type="text" id="vorNo" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Rev</label>
+            <input type="text" id="rev" class="form-input" placeholder="e.g., 01, 02">
+          </div>
+          <div class="form-group">
+            <label class="form-label">OXY PM/PE <span class="required">*</span></label>
+            <input type="text" id="oxyPmPe" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category <span class="required">*</span></label>
+            <select id="category" class="form-input" required>
+              <option value="">Select Category</option>
+              <option value="VoR">VoR</option>
+              <option value="Daywork">Daywork</option>
+              <option value="Change Order">Change Order</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discipline <span class="required">*</span></label>
+            <select id="discipline" class="form-input" required>
+              <option value="">Select Discipline</option>
+              <option value="Civil">Civil</option>
+              <option value="Mech">Mech</option>
+              <option value="E&I">E&I</option>
+              <option value="Piping">Piping</option>
+              <option value="Structural">Structural</option>
+              <option value="Instrumentation">Instrumentation</option>
+              <option value="Telecom">Telecom</option>
+              <option value="Process">Process</option>
+              <option value="HSE">HSE</option>
+              <option value="QA/QC">QA/QC</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label class="form-label">Work Description <span class="required">*</span></label>
+            <textarea id="workDesc" class="form-input" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date Submitted <span class="required">*</span></label>
+            <input type="date" id="dateSubmitted" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date Approved/Rejected</label>
+            <input type="date" id="dateApproved" class="form-input">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Status <span class="required">*</span></label>
+            <select id="status" class="form-input" required>
+              <option value="Draft">Draft</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority <span class="required">*</span></label>
+            <select id="priority" class="form-input" required>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Approved Value (OMR)</label>
+            <input type="number" id="approvedValue" class="form-input" step="0.001" placeholder="0.000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Aging (Days)</label>
+            <input type="text" id="aging" class="form-input" readonly placeholder="Auto-calculated">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label class="form-label">Remarks</label>
+            <textarea id="remarks" class="form-input" rows="2"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-modal-save" onclick="saveRecord()">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-dialog" style="max-width:400px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Confirm Delete</h3>
+      <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete this record? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-modal-save" style="background:var(--red);" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toasts"></div>
+
+<script>
+// Configuration
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyuSzAwICm1OFRcnC7TCJJewOzr8AxqXt0wVJkh2K1e0M87AX-eQ1C0dg4H_o_GJyKF/exec';
+
+// Global variables
+let allRecords = [];
+let filteredRecords = [];
+let currentEditId = null;
+let deleteId = null;
+let currentKpiFilter = null;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Theme handling
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeButtons(savedTheme);
+  
+  // Set current date
+  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', month: 'long', day: 'numeric' 
+  });
+  
+  // Login handling
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('password').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') login();
+  });
+  
+  // Logout handling
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  
+  // Theme toggles
+  document.querySelectorAll('.theme-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.t;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      updateThemeButtons(theme);
     });
-  </script>
+  });
+  
+  // Auto-calculate aging when date changes
+  document.getElementById('dateSubmitted').addEventListener('change', calculateAging);
+  document.getElementById('status').addEventListener('change', calculateAging);
+});
+
+function updateThemeButtons(theme) {
+  document.querySelectorAll('.theme-opt').forEach(btn => {
+    if (btn.dataset.t === theme) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  
+  if (username === 'gpsoman' && password === 'gpsoman') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+    loadData();
+  } else {
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.style.display = 'flex';
+    setTimeout(() => {
+      errorDiv.style.display = 'none';
+    }, 3000);
+  }
+}
+
+function logout() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  allRecords = [];
+  filteredRecords = [];
+}
+
+async function loadData() {
+  showLoading();
+  try {
+    const response = await fetch(`${WEBAPP_URL}?t=${Date.now()}`);
+    const data = await response.json();
+    
+    if (data.status === 'ok') {
+      allRecords = data.rows;
+      filteredRecords = [...allRecords];
+      applyKpiFilter(currentKpiFilter);
+      updateStats();
+      renderTable();
+      showToast('Data loaded successfully', 'success');
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.error('Error loading data:', error);
+    showToast('Failed to load data: ' + error.message, 'error');
+  }
+}
+
+function showLoading() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="16">
+        <div class="empty-state">
+          <i class="fas fa-spinner fa-pulse"></i>
+          <p>Loading records...</p>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function updateStats() {
+  const total = allRecords.length;
+  const approved = allRecords.filter(r => r.status === 'Approved').length;
+  const rejected = allRecords.filter(r => r.status === 'Rejected').length;
+  const pending = allRecords.filter(r => ['Draft', 'Submitted', 'Under Review'].includes(r.status)).length;
+  const highPriority = allRecords.filter(r => r.priority === 'High').length;
+  
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('approvedCount').textContent = approved;
+  document.getElementById('rejectedCount').textContent = rejected;
+  document.getElementById('pendingCount').textContent = pending;
+  document.getElementById('highPriorityCount').textContent = highPriority;
+  document.getElementById('recordCount').textContent = `${filteredRecords.length} records`;
+}
+
+function applyKpiFilter(type) {
+  currentKpiFilter = type;
+  filterData();
+}
+
+function filterData() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const category = document.getElementById('categoryFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  const priority = document.getElementById('priorityFilter').value;
+  
+  filteredRecords = allRecords.filter(record => {
+    // Apply KPI filter
+    if (currentKpiFilter === 'approved' && record.status !== 'Approved') return false;
+    if (currentKpiFilter === 'rejected' && record.status !== 'Rejected') return false;
+    if (currentKpiFilter === 'pending' && !['Draft', 'Submitted', 'Under Review'].includes(record.status)) return false;
+    if (currentKpiFilter === 'high' && record.priority !== 'High') return false;
+    
+    // Apply category filter
+    if (category && record.category !== category) return false;
+    
+    // Apply status filter
+    if (status && record.status !== status) return false;
+    
+    // Apply priority filter
+    if (priority && record.priority !== priority) return false;
+    
+    // Apply search filter
+    if (searchTerm) {
+      const searchable = `${record.vorNo} ${record.workDesc} ${record.gpsPmPe} ${record.oxyPmPe} ${record.remarks}`.toLowerCase();
+      if (!searchable.includes(searchTerm)) return false;
+    }
+    
+    return true;
+  });
+  
+  renderTable();
+  updateStats();
+  
+  const clearBtn = document.getElementById('clearFiltersBtn');
+  const hasFilters = searchTerm || category || status || priority || currentKpiFilter;
+  clearBtn.classList.toggle('visible', hasFilters);
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('categoryFilter').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('priorityFilter').value = '';
+  currentKpiFilter = null;
+  filterData();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  
+  if (filteredRecords.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="16">
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No records found</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = filteredRecords.map(record => `
+    <tr>
+      <td>${record.srNo || '-'}</td>
+      <td>${escapeHtml(record.gpsPmPe || '-')}</td>
+      <td>${escapeHtml(record.vorNo || '-')}</td>
+      <td>${escapeHtml(record.rev || '-')}</td>
+      <td>${escapeHtml(record.oxyPmPe || '-')}</td>
+      <td>${getCategoryBadge(record.category)}</td>
+      <td style="max-width:300px;white-space:normal;">${escapeHtml(record.workDesc || '-')}</td>
+      <td>${escapeHtml(record.discipline || '-')}</td>
+      <td>${formatDate(record.dateSubmitted)}</td>
+      <td>${formatDate(record.dateApproved)}</td>
+      <td>${getStatusBadge(record.status)}</td>
+      <td>${getAgingBadge(record.aging)}</td>
+      <td>${getPriorityBadge(record.priority)}</td>
+      <td>${record.approvedValue ? parseFloat(record.approvedValue).toFixed(3) : '-'}</td>
+      <td style="max-width:200px;white-space:normal;">${escapeHtml(record.remarks || '-')}</td>
+      <td>
+        <div class="cell-actions">
+          <button class="icon-btn edit" onclick="openEditModal('${record._row}')" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="icon-btn delete" onclick="openDeleteModal('${record._row}')" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function getCategoryBadge(category) {
+  const colors = {
+    'VoR': 'badge-approved',
+    'Daywork': 'badge-submitted',
+    'Change Order': 'badge-review'
+  };
+  return `<span class="badge ${colors[category] || 'badge-draft'}">${category || '-'}</span>`;
+}
+
+function getStatusBadge(status) {
+  const badges = {
+    'Approved': 'badge-approved',
+    'Rejected': 'badge-rejected',
+    'Draft': 'badge-draft',
+    'Submitted': 'badge-submitted',
+    'Under Review': 'badge-review',
+    'Closed': 'badge-closed'
+  };
+  return `<span class="badge ${badges[status] || 'badge-draft'}">${status || '-'}</span>`;
+}
+
+function getPriorityBadge(priority) {
+  if (!priority) return '-';
+  const classes = {
+    'High': 'priority-high',
+    'Medium': 'priority-medium',
+    'Low': 'priority-low'
+  };
+  return `<span class="${classes[priority]}">${priority}</span>`;
+}
+
+function getAgingBadge(aging) {
+  if (!aging) return '-';
+  const days = parseInt(aging);
+  if (days > 30) return `<span class="priority-high">${days} days</span>`;
+  if (days > 15) return `<span class="priority-medium">${days} days</span>`;
+  return `<span class="priority-low">${days} days</span>`;
+}
+
+function calculateAging() {
+  const dateSubmitted = document.getElementById('dateSubmitted').value;
+  const status = document.getElementById('status').value;
+  
+  if (dateSubmitted && status !== 'Closed' && status !== 'Approved') {
+    const submitted = new Date(dateSubmitted);
+    const today = new Date();
+    const diffTime = Math.abs(today - submitted);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    document.getElementById('aging').value = diffDays;
+  } else {
+    document.getElementById('aging').value = '';
+  }
+}
+
+function openAddModal() {
+  currentEditId = null;
+  document.getElementById('modalTitle').textContent = 'Add New Record';
+  document.getElementById('recordForm').reset();
+  document.getElementById('dateSubmitted').value = new Date().toISOString().split('T')[0];
+  document.getElementById('status').value = 'Draft';
+  document.getElementById('priority').value = 'Medium';
+  document.getElementById('aging').value = '';
+  document.getElementById('recordModal').classList.add('active');
+}
+
+function openEditModal(rowId) {
+  const record = allRecords.find(r => r._row == rowId);
+  if (!record) return;
+  
+  currentEditId = rowId;
+  document.getElementById('modalTitle').textContent = 'Edit Record';
+  document.getElementById('gpsPmPe').value = record.gpsPmPe || '';
+  document.getElementById('vorNo').value = record.vorNo || '';
+  document.getElementById('rev').value = record.rev || '';
+  document.getElementById('oxyPmPe').value = record.oxyPmPe || '';
+  document.getElementById('category').value = record.category || '';
+  document.getElementById('discipline').value = record.discipline || '';
+  document.getElementById('workDesc').value = record.workDesc || '';
+  document.getElementById('dateSubmitted').value = record.dateSubmitted || '';
+  document.getElementById('dateApproved').value = record.dateApproved || '';
+  document.getElementById('status').value = record.status || 'Draft';
+  document.getElementById('priority').value = record.priority || 'Medium';
+  document.getElementById('approvedValue').value = record.approvedValue || '';
+  document.getElementById('aging').value = record.aging || '';
+  document.getElementById('remarks').value = record.remarks || '';
+  
+  document.getElementById('recordModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('recordModal').classList.remove('active');
+  currentEditId = null;
+}
+
+async function saveRecord() {
+  const formData = {
+    action: currentEditId ? 'update' : 'add',
+    gpsPmPe: document.getElementById('gpsPmPe').value,
+    vorNo: document.getElementById('vorNo').value,
+    rev: document.getElementById('rev').value,
+    oxyPmPe: document.getElementById('oxyPmPe').value,
+    category: document.getElementById('category').value,
+    discipline: document.getElementById('discipline').value,
+    workDesc: document.getElementById('workDesc').value,
+    dateSubmitted: document.getElementById('dateSubmitted').value,
+    dateApproved: document.getElementById('dateApproved').value,
+    status: document.getElementById('status').value,
+    priority: document.getElementById('priority').value,
+    approvedValue: document.getElementById('approvedValue').value,
+    aging: document.getElementById('aging').value,
+    remarks: document.getElementById('remarks').value
+  };
+  
+  if (currentEditId) {
+    formData._row = currentEditId;
+  }
+  
+  // Validate required fields
+  if (!formData.gpsPmPe || !formData.vorNo || !formData.oxyPmPe || !formData.category || 
+      !formData.discipline || !formData.workDesc || !formData.dateSubmitted || !formData.status || !formData.priority) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(formData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.status === 'ok') {
+      showToast(currentEditId ? 'Record updated successfully' : 'Record added successfully', 'success');
+      closeModal();
+      await loadData();
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.error('Error saving record:', error);
+    showToast('Failed to save record: ' + error.message, 'error');
+  }
+}
+
+function openDeleteModal(rowId) {
+  deleteId = rowId;
+  document.getElementById('deleteModal').classList.add('active');
+}
+
+function closeDeleteModal() {
+  deleteId = null;
+  document.getElementById('deleteModal').classList.remove('active');
+}
+
+async function confirmDelete() {
+  if (!deleteId) return;
+  
+  try {
+    const response = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'delete', _row: deleteId })
+    });
+    
+    const data = await response.json();
+    
+    if (data.status === 'ok') {
+      showToast('Record deleted successfully', 'success');
+      closeDeleteModal();
+      await loadData();
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.error('Error deleting record:', error);
+    showToast('Failed to delete record: ' + error.message, 'error');
+  }
+}
+
+function exportToExcel() {
+  if (filteredRecords.length === 0) {
+    showToast('No data to export', 'error');
+    return;
+  }
+  
+  const headers = [
+    'Sr No', 'GPS PM/PE', 'VOR No', 'Rev', 'OXY PM/PE', 'Category', 
+    'Work Description', 'Discipline', 'Date Submitted', 'Date Approved', 
+    'Status', 'Aging (Days)', 'Priority', 'Approved Value (OMR)', 'Remarks'
+  ];
+  
+  const data = filteredRecords.map(record => [
+    record.srNo || '',
+    record.gpsPmPe || '',
+    record.vorNo || '',
+    record.rev || '',
+    record.oxyPmPe || '',
+    record.category || '',
+    record.workDesc || '',
+    record.discipline || '',
+    record.dateSubmitted || '',
+    record.dateApproved || '',
+    record.status || '',
+    record.aging || '',
+    record.priority || '',
+    record.approvedValue || '',
+    record.remarks || ''
+  ]);
+  
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'VoR_DayWorks');
+  XLSX.writeFile(workbook, `GPS_VoR_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+  showToast('Export completed successfully', 'success');
+}
+
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB');
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('app-toasts');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon"><i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i></div>
+    <span>${message}</span>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+</script>
 </body>
 </html>
